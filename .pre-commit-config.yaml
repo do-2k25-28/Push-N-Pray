@@ -1,0 +1,50 @@
+repos:
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: check-case-conflict # Detects files that would clash on case-insensitive filesystems
+      - id: check-merge-conflict # Blocks unresolved Git conflict markers (<<<<<<<, =======, >>>>>>>)
+      - id: check-symlinks # Verifies symlinks are valid and not broken
+      - id: destroyed-symlinks # Detects symlinks accidentally replaced by plain files
+      - id: check-toml
+      - id: check-json
+      - id: check-yaml
+      - id: mixed-line-ending # Normalizes/flags inconsistent line endings (LF/CRLF)
+      - id: detect-private-key # Prevents committing private keys/secrets
+      - id: end-of-file-fixer # Ensures files end with a single trailing newline
+      - id: trailing-whitespace # Removes trailing spaces/tabs
+      - id: check-added-large-files # Blocks accidentally adding large files
+
+  - repo: https://github.com/hadolint/hadolint
+    rev: v2.14.0
+    hooks:
+      - id: hadolint
+
+  - repo: local
+    hooks:
+      - id: format
+        name: Go format
+        entry: gofmt -w
+        language: system
+        types: [go]
+
+      - id: vet
+        name: Go vet
+        entry: go vet ./...
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: linnting
+        name: Go lintting
+        entry: golangci-lint run
+        language: system
+        pass_filenames: false
+        types: [go]
+
+      - id: tidy-check
+        name: Go mod tidy check
+        entry: bash -c 'go mod tidy && git diff --exit-code -- go.mod go.sum'
+        language: system
+        pass_filenames: false
+        files: ^go\.(mod|sum)$
