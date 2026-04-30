@@ -1,0 +1,7 @@
+{
+  "recommendations": [
+    "docker.docker",
+    "github.vscode-github-actions",
+    "golang.go"
+  ]
+}
