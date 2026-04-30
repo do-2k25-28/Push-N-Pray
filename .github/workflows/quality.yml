@@ -4,17 +4,6 @@ on:
   pull_request:
     branches:
       - main
-    paths:
-      - src/**
-      - tests/**
-      - .github/workflows/**
-      - Dockerfile
-      - trivy.yml
-      - .pre-commit-config.yaml
-      - Cargo.toml
-      - compose.yml
-      - renovate.json
-      - rustfmt.toml
   workflow_dispatch:
 
 concurrency:
