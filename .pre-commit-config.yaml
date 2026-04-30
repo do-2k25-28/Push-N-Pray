@@ -19,31 +19,31 @@ repos:
     rev: v2.14.0
     hooks:
       - id: hadolint
-  
+
   - repo: local
     hooks:
-      - id: go-fmt
-        name: go fmt
+      - id: format
+        name: Go format
         entry: gofmt -w
         language: system
         types: [go]
 
-      - id: go-vet
-        name: go vet
+      - id: vet
+        name: Go vet
         entry: go vet ./...
         language: system
         pass_filenames: false
         types: [go]
 
-      - id: golangci-lint
-        name: golangci-lint
+      - id: linnting
+        name: Go lintting
         entry: golangci-lint run
         language: system
         pass_filenames: false
         types: [go]
 
-      - id: go-mod-tidy-check
-        name: go mod tidy check
+      - id: tidy-check
+        name: Go mod tidy check
         entry: bash -c 'go mod tidy && git diff --exit-code -- go.mod go.sum'
         language: system
         pass_filenames: false
