@@ -48,3 +48,4 @@ repos:
         language: system
         pass_filenames: false
         files: ^go\.(mod|sum)$
+        
