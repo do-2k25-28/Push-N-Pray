@@ -119,13 +119,12 @@ GET /v1/tokens
 ```http
 HTTP/1.1 200 OK
 
-Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
   "tokens": [
     {
-      "id": "00b6fda9-52be-4ce9-8635-73784bb4a4fc"
+      "id": "00b6fda9-52be-4ce9-8635-73784bb4a4fc",
       "name": "GitHub Actions",
       "expiresAt": "1785574098"
     }
@@ -150,7 +149,6 @@ Content-Type: application/json
 ```http
 HTTP/1.1 200 OK
 
-Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
@@ -313,3 +311,27 @@ Content-Type: application/json
 | `in-progress` | Deployment is in progress.           |
 | `success`     | Project deployed successfuly.        |
 | `error`       | An error happened during deployment. |
+
+### Environment variables
+
+Set environment variables that will be injected for all services running in the project.
+
+```http
+POST /v1/projects/:projectId/env
+
+Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "variables": [
+    {
+      "name": "MY_CUSTOM_ENV_VARIABLE",
+      "value": "c2997d1b7f93405c957417141be22c73"
+    }
+  ]
+}
+```
+
+```http
+HTTP/1.1 204 OK
+```
