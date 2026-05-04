@@ -8,11 +8,8 @@ import (
 )
 
 func CheckIfDockerInstalled() bool {
-	cmd := exec.Command("docker", "--version")
-	if err := cmd.Run(); err != nil {
-		return false
-	}
-	return true
+	_, err := exec.LookPath("docker")
+	return err == nil
 }
 
 func FindAvailablePort(defaultPort string) string {
@@ -21,7 +18,7 @@ func FindAvailablePort(defaultPort string) string {
 		port = 4000
 	}
 
-	for {
+	for port <= 65535 {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
@@ -30,4 +27,13 @@ func FindAvailablePort(defaultPort string) string {
 		}
 		port++
 	}
+
+	// Fallback to let the OS pick a random available port
+	l, err := net.Listen("tcp", ":0")
+	if err == nil {
+		defer l.Close()
+		return strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
+	}
+
+	return defaultPort
 }
