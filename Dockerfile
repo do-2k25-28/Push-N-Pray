@@ -3,7 +3,7 @@
 FROM golang:1.24 AS build
 
 # Set destination for COPY
-WORKDIR /backend
+WORKDIR /app
 
 # Download Go modules
 COPY go.mod ./
@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN cd backend && CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
+RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping
 
 # Optional:
 # To bind to a TCP port, runtime parameters must be supplied to the docker command.
