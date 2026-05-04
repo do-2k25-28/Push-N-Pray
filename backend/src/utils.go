@@ -22,7 +22,7 @@ func FindAvailablePort(defaultPort string) string {
 		addr := fmt.Sprintf(":%d", port)
 		l, err := net.Listen("tcp", addr)
 		if err == nil {
-			l.Close()
+			_ = l.Close()
 			return strconv.Itoa(port)
 		}
 		port++
@@ -31,7 +31,9 @@ func FindAvailablePort(defaultPort string) string {
 	// Fallback to let the OS pick a random available port
 	l, err := net.Listen("tcp", ":0")
 	if err == nil {
-		defer l.Close()
+		defer func() {
+			_ = l.Close()
+		}()
 		return strconv.Itoa(l.Addr().(*net.TCPAddr).Port)
 	}
 
