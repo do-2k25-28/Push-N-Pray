@@ -10,7 +10,23 @@ If using our Push'N'Pray instance it is `https://api.pushnpray.polydo.dev/v1/`.
 
 ## Authentication
 
-Using a `Authorization` header that is a bearer token.
+### Using an access token
+
+Use the `Authorization` header with the given access token.
+
+```http
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.xTauSR2dlM1bJuIiwlRHy0Sj-66g5_7qL2RKWT2u5J4
+```
+
+### Using a personal access token
+
+Use basic authentication with the username and the PAT.
+
+The token is obtained by concatenating the username with the PAT with a colon (e.g. `drichard:8bb8069ce18241d89dfaf1fbc635d642`) and then encoding it in base64.
+
+```http
+Authorization: Basic ZHJpY2hhcmQ6OGJiODA2OWNlMTgyNDFkODlkZmFmMWZiYzYzNWQ2NDI=
+```
 
 ## App
 
