@@ -1,10 +1,12 @@
 name: Build
 
 on:
+  push:
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
-  workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
@@ -38,5 +40,5 @@ jobs:
               uses: docker/build-push-action@v7
               with:
                 context: .
-                push: true
-                tags: user/app:latest
+                push: ${{ github.event_name == 'push' }}
+                tags: ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray:${{ github.ref_name }}
