@@ -20,8 +20,6 @@ jobs:
     build-backend:
         name: build backend
         runs-on: ubuntu-24.04
-        outputs:
-            digest: ${{ steps.build.outputs.digest }}
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
