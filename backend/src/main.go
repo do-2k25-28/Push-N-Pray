@@ -2,7 +2,6 @@ package main
 
 import (
 	"log"
-	"net/http"
 	"os"
 )
 
@@ -21,7 +20,7 @@ func main() {
 
 	serverPort = FindAvailablePort(serverPort)
 	log.Printf("using port %s", serverPort)
-	err := http.ListenAndServe(":"+serverPort, router)
+	err := router.Run(":" + serverPort)
 
 	if err != nil {
 		log.Fatalf("Server failed: %v. Make sure the port %s is available.", err, serverPort)

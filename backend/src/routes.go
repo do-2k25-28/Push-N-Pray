@@ -3,7 +3,7 @@ package main
 import (
 	"net/http"
 
-	"github.com/gorilla/mux"
+	"github.com/gin-gonic/gin"
 )
 
 const (
@@ -12,74 +12,64 @@ const (
 	RouteAuthLoginV1         = "/v1/auth/login"
 	RouteAuthTokenV1         = "/v1/auth/token"
 	RouteTokensV1            = "/v1/tokens"
-	RouteTokenDeleteV1       = "/v1/tokens/{tokenId}"
+	RouteTokenDeleteV1       = "/v1/tokens/:tokenId"
 	RouteProjectsV1          = "/v1/projects"
-	RouteProjectDeleteV1     = "/v1/projects/{projectId}"
-	RouteProjectDeployV1     = "/v1/projects/{projectId}/deploy"
-	RouteProjectDeploymentV1 = "/v1/projects/{projectId}/deployments/{deploymentId}"
-	RouteProjectEnvV1        = "/v1/projects/{projectId}/env"
+	RouteProjectDeleteV1     = "/v1/projects/:projectId"
+	RouteProjectDeployV1     = "/v1/projects/:projectId/deploy"
+	RouteProjectDeploymentV1 = "/v1/projects/:projectId/deployments/:deploymentId"
+	RouteProjectEnvV1        = "/v1/projects/:projectId/env"
 )
 
-func NewRouter() *mux.Router {
-	r := mux.NewRouter()
+func NewRouter() *gin.Engine {
+	r := gin.Default()
 
-	r.HandleFunc(RouteHealthV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("OK"))
-	}).Methods(http.MethodGet)
+	r.GET(RouteHealthV1, func(c *gin.Context) {
+		c.String(http.StatusOK, "OK")
+	})
 
-	r.HandleFunc(RouteAuthRegisterV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteAuthRegisterV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteAuthRegisterV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteAuthRegisterV1)
+	})
 
-	r.HandleFunc(RouteAuthLoginV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteAuthLoginV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteAuthLoginV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteAuthLoginV1)
+	})
 
-	r.HandleFunc(RouteAuthTokenV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteAuthTokenV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteAuthTokenV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteAuthTokenV1)
+	})
 
-	r.HandleFunc(RouteTokensV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("GET " + RouteTokensV1))
-	}).Methods(http.MethodGet)
+	r.GET(RouteTokensV1, func(c *gin.Context) {
+		c.String(http.StatusOK, "GET "+RouteTokensV1)
+	})
 
-	r.HandleFunc(RouteTokensV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte("POST " + RouteTokensV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteTokensV1, func(c *gin.Context) {
+		c.String(http.StatusOK, "POST "+RouteTokensV1)
+	})
 
-	r.HandleFunc(RouteTokenDeleteV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	}).Methods(http.MethodDelete)
+	r.DELETE(RouteTokenDeleteV1, func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
 
-	r.HandleFunc(RouteProjectsV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteProjectsV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteProjectsV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteProjectsV1)
+	})
 
-	r.HandleFunc(RouteProjectDeleteV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusNoContent)
-	}).Methods(http.MethodDelete)
+	r.DELETE(RouteProjectDeleteV1, func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
 
-	r.HandleFunc(RouteProjectDeployV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteProjectDeployV1))
-	}).Methods(http.MethodPost)
+	r.POST(RouteProjectDeployV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteProjectDeployV1)
+	})
 
-	r.HandleFunc(RouteProjectDeploymentV1, func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
-		w.Write([]byte(RouteProjectDeploymentV1))
-	}).Methods(http.MethodGet)
+	r.GET(RouteProjectDeploymentV1, func(c *gin.Context) {
+		c.String(http.StatusOK, RouteProjectDeploymentV1)
+	})
 
-	r.HandleFunc(RouteProjectEnvV1, func(w http.ResponseWriter, r *http.Request) {
-		// Note: The API spec says 204 OK for this one, using StatusNoContent.
-		w.WriteHeader(http.StatusNoContent)
-	}).Methods(http.MethodPost)
+	r.POST(RouteProjectEnvV1, func(c *gin.Context) {
+		c.Status(http.StatusNoContent)
+	})
 
 	return r
 }
