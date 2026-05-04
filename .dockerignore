@@ -1,0 +1,63 @@
+# VCS and CI metadata
+.git
+.gitignore
+.github/
+
+# Local agent/tooling metadata
+.agents/
+.codex/
+
+# IDE/editor files
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS noise
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Build outputs and binaries
+bin/
+build/
+dist/
+out/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.a
+*.o
+*.obj
+*.test
+*.out
+
+# Go caches and profiling artifacts
+.gocache/
+.gomodcache/
+.cover/
+coverage.out
+coverage.txt
+*.coverprofile
+*.cov
+*.prof
+*.pprof
+cpu.pprof
+mem.pprof
+
+# Local env and logs
+.env
+.env.*
+*.log
+logs/
+
+# Temp files
+tmp/
+temp/
+*.tmp
+
+# Optional docs (not needed for build)
+docs/
