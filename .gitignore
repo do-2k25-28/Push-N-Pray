@@ -1,43 +1,81 @@
-# Binaries and build output
+# ------------------------------
+# Go: binaries, objects, test output
+# ------------------------------
 *.exe
 *.exe~
 *.dll
 *.so
 *.dylib
+*.a
+*.o
+*.obj
 *.test
 *.out
+
+# Common local build folders
 bin/
-dist/
 build/
+dist/
+out/
 
-# Coverage reports
-coverage.out
-*.coverprofile
-
-# Go workspace files
+# ------------------------------
+# Go: tooling and caches
+# ------------------------------
+# Local module/workspace files (keep go.mod/go.sum tracked)
 go.work
 go.work.sum
 
-# Vendor directory (uncomment if you do not vendor dependencies)
-# vendor/
+# Go caches
+.gocache/
+.gomodcache/
+.cover/
 
-# Environment files
+# Test and coverage artifacts
+coverage.out
+coverage.txt
+*.coverprofile
+*.cov
+*.prof
+
+# Benchmark / pprof artifacts
+cpu.pprof
+mem.pprof
+*.pprof
+
+# ------------------------------
+# Runtime / local data
+# ------------------------------
 .env
 .env.*
 !.env.example
 
-# Logs and temp files
+# Logs
 *.log
+logs/
+
+# Temp files and folders
 tmp/
+temp/
+*.tmp
 
-# OS files
-.DS_Store
-Thumbs.db
-
-# IDE/editor
+# ------------------------------
+# IDE / editor
+# ------------------------------
 .idea/
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json
+
+# Vim / Emacs / swap
+*.swp
+*.swo
+*~
+
+# ------------------------------
+# OS-specific
+# ------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
