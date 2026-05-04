@@ -42,7 +42,7 @@ jobs:
               with:
                 push: ${{ github.event_name == 'push' }} # Only push the image if we're on main
                 platforms: linux/amd64
-                outputs: type=image,name=${{ env.CONTAINER_REGISTRY }}/do-2k25-28/Push-N-Pray,push-by-digest=true,name-canonical=true
+                outputs: type=image,name=${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray,push-by-digest=true,name-canonical=true
                 cache-from: type=gha,scope=buildkit-amd64
                 cache-to: type=gha,mode=max,scope=buildkit-amd64
 
@@ -71,7 +71,7 @@ jobs:
               with:
                 push: ${{ github.event_name == 'push' }} # Only push the image if we're on main
                 platforms: linux/arm64
-                outputs: type=image,name=${{ env.CONTAINER_REGISTRY }}/do-2k25-28/Push-N-Pray,push-by-digest=true,name-canonical=true
+                outputs: type=image,name=${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray,push-by-digest=true,name-canonical=true
                 cache-from: type=gha,scope=buildkit-arm64
                 cache-to: type=gha,mode=max,scope=buildkit-arm64
 
@@ -95,6 +95,6 @@ jobs:
 
             - name: Create and push manifest
               run: >-
-                docker buildx imagetools create -t ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/Push-N-Pray:${{ github.sha }}
-                ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/Push-N-Pray@${{ needs.build-amd64.outputs.digest }}
-                ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/Push-N-Pray@${{ needs.build-arm64.outputs.digest }}
+                docker buildx imagetools create -t ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray:${{ github.sha }}
+                ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray@${{ needs.build-backend-amd64.outputs.digest }}
+                ${{ env.CONTAINER_REGISTRY }}/do-2k25-28/push-n-pray@${{ needs.build-backend-arm64.outputs.digest }}
