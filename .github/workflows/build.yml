@@ -16,7 +16,6 @@ permissions:
   contents: read
 
 env:
-  DORIAN_EST_NULL : dorian richard pu des fesse
   CONTAINER_REGISTRY: ghcr.io
 
 jobs:
@@ -24,10 +23,6 @@ jobs:
         name: build backend
         runs-on: ubuntu-24.04
         steps:
-            - name: Bark Dorian
-              run: |
-                echo ${{ env.DORIAN_EST_NULL }}
-
             - name: Checkout code
               uses: actions/checkout@v6
             
