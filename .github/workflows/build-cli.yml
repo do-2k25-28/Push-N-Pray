@@ -1,4 +1,4 @@
-name: Build and release
+name: Build cli
 
 on:
   pull_request:
@@ -21,11 +21,11 @@ permissions:
 
 jobs:
   build-cli:
-    name: build cli
+    name: Build cli
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
         uses: actions/checkout@v6
 
-      - name: build cli
+      - name: Build cli
         run: make build-cli
