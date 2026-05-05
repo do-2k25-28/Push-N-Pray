@@ -49,7 +49,8 @@ jobs:
           go-version: "1.26"
 
       - name: Go format
-        run: find . -name go.mod -not -path './.git/*' -execdir sh -c 'test -z "$(gofmt -l .)"' \;
+        run: |
+          [ "$(gofmt -l . | wc -l)" == "0" ]
 
   go-vet:
     name: Vet
@@ -64,4 +65,4 @@ jobs:
           go-version: "1.26"
 
       - name: Run go vet
-        run: find . -name go.mod -not -path './.git/*' -execdir go vet ./... \;
+        run: go vet **/*.go
