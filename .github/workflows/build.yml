@@ -26,7 +26,7 @@ jobs:
         steps:
             - name: Checkout code
               uses: actions/checkout@v6
-            
+
             - name: Docker meta
               id: meta
               uses: docker/metadata-action@v6
@@ -52,17 +52,13 @@ jobs:
                 push: ${{ github.event_name == 'push' }}
                 tags: ${{ steps.meta.outputs.tags }}
                 labels: ${{ steps.meta.outputs.labels }}
-    
+
     build-cli:
       name: build cli
       runs-on: ubuntu-24.04
-      steps: 
+      steps:
         - name: Checkout code
-          uses: actions/checkout@v6 
-        
+          uses: actions/checkout@v6
+
         - name: build cli
           run: make build-cli
-        
-        
-
-        

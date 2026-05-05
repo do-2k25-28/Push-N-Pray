@@ -9,14 +9,14 @@ RUN go mod download
 # Copy source and build a static binary
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o /out/server ./cmd/server
+    go build -trimpath -ldflags="-s -w -buildid=" -o /out/server ./cmd/server
 
-FROM gcr.io/distroless/static-debian13
+FROM gcr.io/distroless/static-debian12:nonroot
 
 USER nonroot:nonroot
 
-COPY --from=build /app/push-n-pray /usr/local/bin/push-n-pray
+COPY --from=builder /out/server /usr/local/bin/push-n-pray
 
-EXPOSE 80
+EXPOSE 4000
 
 ENTRYPOINT ["/usr/local/bin/push-n-pray"]
