@@ -20,6 +20,12 @@ repos:
     hooks:
       - id: hadolint
 
+  - repo: https://github.com/golangci/golangci-lint
+    rev: v2.11.0
+    hooks:
+      - id: golangci-lint
+        args: [--timeout=5m]
+
   - repo: local
     hooks:
       - id: format
@@ -31,13 +37,6 @@ repos:
       - id: vet
         name: Go vet
         entry: go vet ./...
-        language: system
-        pass_filenames: false
-        types: [go]
-
-      - id: linnting
-        name: Go lintting
-        entry: golangci-lint run
         language: system
         pass_filenames: false
         types: [go]

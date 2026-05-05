@@ -1,0 +1,15 @@
+.git
+.github
+.gocache
+.vscode
+bin
+docs
+.dockerignore
+.gitignore
+.pre-commit-config.yaml
+compose.yml
+dependabot.yml
+Dockerfile
+LICENSE
+Makefile
+README.md
