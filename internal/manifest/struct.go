@@ -16,6 +16,7 @@ type DockerApp struct {
 }
 
 type Service struct {
+	Name string
 }
 
 type PostgresService struct {
@@ -32,18 +33,18 @@ type S3Service struct {
 	Service
 }
 
-var Manifest struct {
+type Manifest struct {
 	ProjectId     string `toml:"project-id"`
 	RepositoryUrl string `toml:"repository-url"`
 
 	Apps struct {
-		Dockerfile []DockerFileApp
-		Docker     []DockerApp
-	}
+		Dockerfile []DockerFileApp `toml:"dockerfile,omitempty"`
+		Docker     []DockerApp     `toml:"docker,omitempty"`
+	} `toml:"apps,omitempty"`
 
 	Services struct {
-		Postgres []PostgresService
-		Redis    []RedisService
-		S3       []S3Service
-	}
+		Postgres []PostgresService `toml:"postgres,omitempty"`
+		Redis    []RedisService    `toml:"redis,omitempty"`
+		S3       []S3Service       `toml:"s3,omitempty"`
+	} `toml:"services,omitempty"`
 }
