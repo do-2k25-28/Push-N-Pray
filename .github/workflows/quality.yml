@@ -30,6 +30,22 @@ jobs:
         with:
           version: v2.11
 
+      - name: Go Formatter
+        run: |
+          set -e
+          find . -name go.mod -not -path './.git/*' -print0 | while IFS= read -r -d '' mod; do
+            dir="$(dirname "$mod")"
+            (cd "$dir" && go fmt ./...)
+          done
+
+      - name: Go Vet
+        run: |
+          set -e
+          find . -name go.mod -not -path './.git/*' -print0 | while IFS= read -r -d '' mod; do
+            dir="$(dirname "$mod")"
+            (cd "$dir" && go vet ./...)
+          done
+
       - uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
