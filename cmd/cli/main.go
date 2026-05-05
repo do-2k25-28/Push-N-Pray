@@ -1,6 +1,6 @@
 package main
 
-import "pushnpray/cli/cmd"
+import "pushnpray/cmd/cli/cmd"
 
 func main() {
 	cmd.Execute()

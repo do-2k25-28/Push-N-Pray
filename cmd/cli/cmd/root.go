@@ -3,9 +3,9 @@ package cmd
 import (
 	"os"
 
-	"pushnpray/cli/cmd/env"
-	"pushnpray/cli/cmd/pat"
-	"pushnpray/cli/cmd/project"
+	"pushnpray/cmd/cli/cmd/env"
+	"pushnpray/cmd/cli/cmd/pat"
+	"pushnpray/cmd/cli/cmd/project"
 
 	"github.com/spf13/cobra"
 )
