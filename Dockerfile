@@ -17,6 +17,6 @@ USER nonroot:nonroot
 
 COPY --from=builder /out/server /usr/local/bin/push-n-pray
 
-EXPOSE 4000
+EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/push-n-pray"]
