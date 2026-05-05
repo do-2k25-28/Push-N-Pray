@@ -9,7 +9,7 @@ RUN go mod download
 # Copy source and build a static binary
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -trimpath -ldflags="-s -w -buildid=" -o /out/server ./cmd/server
+    go build -ldflags="-s -w" -o /out/server ./cmd/server
 
 FROM gcr.io/distroless/static-debian13:nonroot
 
