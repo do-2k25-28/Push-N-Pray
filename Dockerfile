@@ -1,25 +1,22 @@
-FROM golang:1.26.2 AS build
+FROM golang:1.26.2 AS builder
 
-# Set destination for COPY
-WORKDIR /app
+WORKDIR /src
 
-# Download Go modules
+# Cache dependencies first
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy the source code. Note the slash at the end, as explained in
-# https://docs.docker.com/reference/dockerfile/#copy
+# Copy source and build a static binary
 COPY . .
+RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
+    go build -ldflags="-s -w" -o /out/server ./cmd/server
 
-# Build
-RUN GIN_MODE=release CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
+FROM gcr.io/distroless/static-debian13
 
-# Optional:
-# To bind to a TCP port, runtime parameters must be supplied to the docker command.
-# But we can document in the Dockerfile what ports
-# the application is going to listen on by default.
-# https://docs.docker.com/reference/dockerfile/#expose
-EXPOSE 8080
+USER nonroot:nonroot
 
-# Run
-CMD ["/server"]
+COPY --from=build /app/push-n-pray /usr/local/bin/push-n-pray
+
+EXPOSE 80
+
+ENTRYPOINT ["/usr/local/bin/push-n-pray"]

@@ -1,4 +1,4 @@
-name: Build
+name: Build and release
 
 on:
   push:
@@ -61,7 +61,7 @@ jobs:
           uses: actions/checkout@v6 
         
         - name: build cli
-          run: make
+          run: make build-cli
         
         
 
