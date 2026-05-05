@@ -1,37 +1,23 @@
-.PHONY: all build test lint fmt tidy clean
+BIN=bin
 
-MODULES := ./docker-wrapper
+# Build all binaries
+all: clean build-cli build-server
 
-all: build
+# Build the CLI
+build-cli:
+	@echo "Building CLI..."
+	go build -ldflags="-s -w" -o $(BIN)/cli ./cmd/cli
 
-## build: build all modules
-build:
-	go build $(MODULES)/...
+# Build the Server
+build-server:
+	@echo "Building Server..."
+	go build -ldflags="-s -w" -o $(BIN)/server ./cmd/server
 
-## test: run tests for all modules
-test:
-	go test $(MODULES)/...
+# Run the server locally
+run-server:
+	go run ./cmd/server/main.go
 
-## lint: run go vet on all modules
-lint:
-	go vet $(MODULES)/...
-
-## fmt: format all Go source files
-fmt:
-	gofmt -w $(MODULES)
-
-## tidy: tidy dependencies for all modules
-tidy:
-	go work sync
-	@for mod in $(MODULES); do \
-		echo ">> tidy $$mod"; \
-		cd $$mod && go mod tidy && cd -; \
-	done
-
-## clean: remove build artifacts
+# Clean build artifacts
 clean:
-	go clean $(MODULES)/...
-
-## help: print this help message
-help:
-	@sed -n 's/^##//p' $(MAKEFILE_LIST) | column -t -s ':' | sed -e 's/^/ /'
+	@echo "Cleaning..."
+	rm -rf $(BIN)

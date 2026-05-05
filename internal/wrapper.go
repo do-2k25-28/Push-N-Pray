@@ -1,6 +1,6 @@
 // Package dockerwrapper abstracts Docker operations for pulling images,
 // creating networks, and creating containers.
-package dockerwrapper
+package internal
 
 import (
 	"context"
