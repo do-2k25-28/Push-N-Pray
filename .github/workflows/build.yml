@@ -59,8 +59,8 @@ jobs:
         - name: Checkout code
           uses: actions/checkout@v6 
         
-        - name: build application
-          run: make build
+        - name: build cli
+          run: make
         
         
 
