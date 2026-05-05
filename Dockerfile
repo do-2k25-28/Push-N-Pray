@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build
-RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping ./backend/src
+RUN GIN_MODE=release CGO_ENABLED=0 GOOS=linux go build -o /server ./cmd/server
 
 # Optional:
 # To bind to a TCP port, runtime parameters must be supplied to the docker command.
@@ -24,4 +24,4 @@ RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-gs-ping ./backend/src
 EXPOSE 8080
 
 # Run
-CMD ["/docker-gs-ping"]
+CMD ["/server"]
