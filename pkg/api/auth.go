@@ -19,14 +19,14 @@ func (t BearerToken) Apply(req *http.Request) {
 }
 
 type BasicAuth struct {
-	Username string
-	Token    string
+	Email string
+	Token string
 }
 
 func (b BasicAuth) Apply(req *http.Request) {
-	if b.Username == "" || b.Token == "" {
+	if b.Email == "" || b.Token == "" {
 		return
 	}
-	creds := b.Username + ":" + b.Token
+	creds := b.Email + ":" + b.Token
 	req.Header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(creds)))
 }

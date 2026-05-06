@@ -65,9 +65,9 @@ func WithBearerToken(token string) Option {
 	}
 }
 
-func WithBasicAuth(username, token string) Option {
+func WithBasicAuth(email, token string) Option {
 	return func(c *Client) {
-		c.auth = BasicAuth{Username: username, Token: token}
+		c.auth = BasicAuth{Email: email, Token: token}
 	}
 }
 
