@@ -15,21 +15,54 @@ permissions:
 
 jobs:
   lint:
-    name: Lint
+    name: Linting
     runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v6
 
-      - uses: actions/setup-go@v6
+      - name: Install ToolChain
+        uses: actions/setup-go@v6
         with:
           go-version: "1.26"
 
-      - name: golangci-lint
+      - name: Golangci-lint
         uses: golangci/golangci-lint-action@v9
         with:
           version: v2.11
 
-      - uses: hadolint/hadolint-action@v3.1.0
+      - name: Hadolint
+        uses: hadolint/hadolint-action@v3.1.0
         with:
           dockerfile: Dockerfile
+
+  go-fmt:
+    name: Format
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install tool chain
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+
+      - name: Go format
+        run: |
+          [ "$(gofmt -l . | wc -l)" == "0" ]
+
+  go-vet:
+    name: Vet
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Install tool chain
+        uses: actions/setup-go@v6
+        with:
+          go-version: "1.26"
+
+      - name: Run go vet
+        run: go vet **/*.go
