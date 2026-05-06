@@ -198,12 +198,8 @@ Authorization: Bearer <accessToken>
 Content-Type: application/json
 
 {
-  "name": "My revolutionary project",
   "slug": "my-revolutionary-project",
-  "repository": {
-    "url": "https://github.com/RichardDorian/CitiesAPI.git",
-    "branch": "main"
-  }
+  "repositoryUrl": "https://github.com/RichardDorian/CitiesAPI.git"
 }
 ```
 
@@ -266,6 +262,11 @@ or
 POST /v1/projects/:projectId/deploy
 
 Authorization: Bearer <accessToken>
+Content-Type: application/json
+
+{
+  "branch": "main"
+}
 ```
 
 ```http

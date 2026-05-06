@@ -26,6 +26,8 @@ func Execute() {
 func init() {
 	rootCmd.Flags().StringP("file", "f", "pushnpray.toml", "Path to a project manifest")
 
+	var _ = rootCmd.MarkFlagFilename("file", "toml")
+
 	rootCmd.AddCommand(env.EnvCmd)
 	rootCmd.AddCommand(pat.PatCmd)
 	rootCmd.AddCommand(project.ProjectCmd)
