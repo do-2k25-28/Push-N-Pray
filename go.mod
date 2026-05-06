@@ -6,7 +6,7 @@ require github.com/spf13/cobra v1.10.2
 
 require (
 	github.com/docker/go-sdk/container v0.1.0-alpha014
-	github.com/docker/go-sdk/image v0.1.0-alpha014
+	github.com/docker/go-sdk/image v0.1.0-alpha015
 	github.com/docker/go-sdk/network v0.1.0-alpha013
 	github.com/gin-gonic/gin v1.12.0
 	github.com/google/uuid v1.6.0
