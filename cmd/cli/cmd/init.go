@@ -1,11 +1,11 @@
 package cmd
 
 import (
-	"os"
-	"pushnpray/internal/manifest"
-
 	"github.com/google/uuid"
 	"github.com/spf13/cobra"
+	"os"
+	"pushnpray/internal/manifest"
+	"pushnpray/internal/session"
 )
 
 var manifestPath string = ""
@@ -25,9 +25,7 @@ var initCmd = &cobra.Command{
 
 		manifestPath = file
 
-		// TODO: Check if user is logged in
-
-		return nil
+		return session.VerifyAuth()
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
 		// TODO: POST v1/projects
