@@ -20,12 +20,12 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3O
 
 ### Using a personal access token
 
-Use basic authentication with the username and the PAT.
+Use basic authentication with the email and the PAT.
 
-The token is obtained by concatenating the username with the PAT with a colon (e.g. `drichard:8bb8069ce18241d89dfaf1fbc635d642`) and then encoding it in base64.
+The token is obtained by concatenating the email with the PAT with a colon (e.g. `jdoe@acme.org:8bb8069ce18241d89dfaf1fbc635d642`) and then encoding it in base64.
 
 ```http
-Authorization: Basic ZHJpY2hhcmQ6OGJiODA2OWNlMTgyNDFkODlkZmFmMWZiYzYzNWQ2NDI=
+Authorization: Basic amRvZUBhY21lLm9yZzo4YmI4MDY5Y2UxODI0MWQ4OWRmYWYxZmJjNjM1ZDY0Mg==
 ```
 
 ## App
@@ -55,7 +55,6 @@ Content-Type: application/json
 
 {
   "email": "john.doe@acme.org",
-  "username": "jdoe",
   "password": "superSecretPassword"
 }
 ```
