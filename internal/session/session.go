@@ -113,7 +113,7 @@ func (sessionConfig *Config) GetAuthClientOption(serverURL string) (api.Option, 
 		}
 	}
 
-	return nil, fmt.Errorf("no valid session found for this server, run `pushnpray login --server <url>` first")
+	return nil, fmt.Errorf("no valid session found for this server")
 }
 
 // VerifyAuth validates that the user is considered logged in.
@@ -122,7 +122,7 @@ func (sessionConfig *Config) GetAuthClientOption(serverURL string) (api.Option, 
 func VerifyAuth() error {
 	sessionConfig, err := Load()
 	if err != nil {
-		return fmt.Errorf("you are not logged in, run `pushnpray login` first")
+		return fmt.Errorf("you are not logged in")
 	}
 
 	return sessionConfig.VerifyAuth()
@@ -179,5 +179,5 @@ func (sessionConfig *Config) VerifyAuth() error {
 		}
 	}
 
-	return fmt.Errorf("you are not logged in, run `pushnpray login` first")
+	return fmt.Errorf("you are not logged in")
 }
