@@ -63,9 +63,11 @@ func init() {
 
 	initCmd.Flags().StringVarP(&projectName, "name", "n", "", "Name for your new project")
 	initCmd.Flags().StringVarP(&repositoryUrl, "repository", "r", "", "URL of the repository (must be http(s))")
+	initCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 
 	var _ = initCmd.MarkFlagRequired("name")
 	var _ = initCmd.MarkFlagRequired("repository")
+	var _ = initCmd.MarkFlagRequired("server")
 }
 
 func initAuthenticatedClient() (*api.Client, error) {
