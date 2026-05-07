@@ -2,8 +2,9 @@ package deployment
 
 import (
 	"fmt"
-	"os"
-	"os/exec"
+
+	gogit "github.com/go-git/go-git/v5"
+	"github.com/go-git/go-git/v5/plumbing"
 )
 
 type GitFetchStrategy interface {
@@ -15,10 +16,15 @@ type BranchStrategy struct {
 }
 
 func (s *BranchStrategy) Fetch(repoURL, destDir string) error {
-	cmd := exec.Command("git", "clone", "-b", s.Branch, "--single-branch", repoURL, destDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	_, err := gogit.PlainClone(destDir, false, &gogit.CloneOptions{
+		URL:           repoURL,
+		ReferenceName: plumbing.NewBranchReferenceName(s.Branch),
+		SingleBranch:  true,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrRepoCloneFailed, err)
+	}
+	return nil
 }
 
 type TagStrategy struct {
@@ -26,10 +32,15 @@ type TagStrategy struct {
 }
 
 func (s *TagStrategy) Fetch(repoURL, destDir string) error {
-	cmd := exec.Command("git", "clone", "-b", s.Tag, "--single-branch", repoURL, destDir)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	return cmd.Run()
+	_, err := gogit.PlainClone(destDir, false, &gogit.CloneOptions{
+		URL:           repoURL,
+		ReferenceName: plumbing.NewTagReferenceName(s.Tag),
+		SingleBranch:  true,
+	})
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrRepoCloneFailed, err)
+	}
+	return nil
 }
 
 type CommitStrategy struct {
@@ -37,18 +48,22 @@ type CommitStrategy struct {
 }
 
 func (s *CommitStrategy) Fetch(repoURL, destDir string) error {
-	cloneCmd := exec.Command("git", "clone", repoURL, destDir)
-	cloneCmd.Stdout = os.Stdout
-	cloneCmd.Stderr = os.Stderr
-	if err := cloneCmd.Run(); err != nil {
+	repo, err := gogit.PlainClone(destDir, false, &gogit.CloneOptions{
+		URL: repoURL,
+	})
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrRepoCloneFailed, err)
 	}
 
-	checkoutCmd := exec.Command("git", "checkout", s.Commit)
-	checkoutCmd.Dir = destDir
-	checkoutCmd.Stdout = os.Stdout
-	checkoutCmd.Stderr = os.Stderr
-	if err := checkoutCmd.Run(); err != nil {
+	w, err := repo.Worktree()
+	if err != nil {
+		return fmt.Errorf("%w: %w", ErrCommitCheckoutFailed, err)
+	}
+
+	err = w.Checkout(&gogit.CheckoutOptions{
+		Hash: plumbing.NewHash(s.Commit),
+	})
+	if err != nil {
 		return fmt.Errorf("%w: %w", ErrCommitCheckoutFailed, err)
 	}
 	return nil

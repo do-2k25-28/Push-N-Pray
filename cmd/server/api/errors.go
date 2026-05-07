@@ -1,6 +1,7 @@
 package api
 
 const (
+	ErrMissingRequiredFields  = "slug and repositoryUrl are required"
 	ErrProjectNotFound        = "Project not found"
 	ErrProjectListFailed      = "Failed to list projects"
 	ErrProjectCreateFailed    = "Failed to create project"

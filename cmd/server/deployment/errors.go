@@ -19,7 +19,7 @@ const (
 	msgDeployFailed    = "Deployment failed"
 	msgDeploySuccess   = "Deployment successful"
 
-	errFmtDockerfileNotFound = "Dockerfile does not exist at path: %s"
+	errFmtDockerfileNotFound = "dockerfile does not exist at path: %s"
 	errFmtAppDeployFailed    = "failed to deploy app %s"
 	errFmtAppRunFailed       = "failed to run app %s"
 )

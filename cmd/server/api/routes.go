@@ -7,18 +7,18 @@ import (
 )
 
 const (
-	RouteHealthV1               = "/v1/health"
-	RouteAuthRegisterV1         = "/v1/auth/register"
-	RouteAuthLoginV1            = "/v1/auth/login"
-	RouteAuthTokenV1            = "/v1/auth/token"
-	RouteTokensV1               = "/v1/tokens"
-	RouteTokenDeleteV1          = "/v1/tokens/:tokenId"
-	RouteProjectsV1             = "/v1/projects"
-	RouteProjectV1              = "/v1/projects/:projectId"
-	RouteProjectDeployV1        = "/v1/projects/:projectId/deploy"
-	RouteProjectDeploymentsV1   = "/v1/projects/:projectId/deployments"
-	RouteProjectDeploymentV1    = "/v1/projects/:projectId/deployments/:deploymentId"
-	RouteProjectEnvV1           = "/v1/projects/:projectId/env"
+	RouteHealthV1             = "/v1/health"
+	RouteAuthRegisterV1       = "/v1/auth/register"
+	RouteAuthLoginV1          = "/v1/auth/login"
+	RouteAuthTokenV1          = "/v1/auth/token"
+	RouteTokensV1             = "/v1/tokens"
+	RouteTokenDeleteV1        = "/v1/tokens/:tokenId"
+	RouteProjectsV1           = "/v1/projects"
+	RouteProjectV1            = "/v1/projects/:projectId"
+	RouteProjectDeployV1      = "/v1/projects/:projectId/deploy"
+	RouteProjectDeploymentsV1 = "/v1/projects/:projectId/deployments"
+	RouteProjectDeploymentV1  = "/v1/projects/:projectId/deployments/:deploymentId"
+	RouteProjectEnvV1         = "/v1/projects/:projectId/env"
 )
 
 func NewRouter() *gin.Engine {

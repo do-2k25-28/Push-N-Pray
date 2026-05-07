@@ -7,21 +7,16 @@ import (
 	"pushnpray/cmd/server/deployment"
 	"pushnpray/cmd/server/models"
 	"pushnpray/cmd/server/utils"
+	pkgapi "pushnpray/pkg/api"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
-type CreateProjectRequest struct {
-	Slug          string `json:"slug" binding:"required"`
-	RepositoryUrl string `json:"repositoryUrl" binding:"required"`
-}
-
+// DeployProjectRequest extends the shared type with the server-only Manifest override.
 type DeployProjectRequest struct {
-	Tag      *string `json:"tag"`
-	Commit   *string `json:"commit"`
-	Branch   *string `json:"branch"`
-	Manifest *string `json:"manifest"`
+	pkgapi.DeployProjectRequest
+	Manifest *string `json:"manifest,omitempty"`
 }
 
 func ListProjects(c *gin.Context) {
@@ -52,7 +47,10 @@ func DeleteProject(c *gin.Context) {
 	}
 
 	pattern := fmt.Sprintf("%s-%s", project.Slug, project.ID)
-	utils.StopAndRemoveContainersByPattern(pattern)
+	var errStopRemoveContainer = utils.StopAndRemoveContainersByPattern(pattern)
+	if errStopRemoveContainer != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.ErrDockerStopRemoveFailed})
+	}
 
 	if err := database.GetDB().Delete(&project).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrProjectDeleteFailed})
@@ -87,9 +85,13 @@ func GetDeployment(c *gin.Context) {
 }
 
 func CreateProject(c *gin.Context) {
-	var req CreateProjectRequest
+	var req pkgapi.CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		return
+	}
+	if req.Slug == "" || req.RepositoryURL == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrMissingRequiredFields})
 		return
 	}
 
@@ -97,7 +99,7 @@ func CreateProject(c *gin.Context) {
 	project := models.Project{
 		ID:            id,
 		Slug:          req.Slug,
-		RepositoryUrl: req.RepositoryUrl,
+		RepositoryUrl: req.RepositoryURL,
 	}
 
 	if err := database.GetDB().Create(&project).Error; err != nil {
@@ -124,12 +126,12 @@ func DeployProject(c *gin.Context) {
 	}
 
 	var strategy deployment.GitFetchStrategy
-	if req.Tag != nil {
-		strategy = &deployment.TagStrategy{Tag: *req.Tag}
-	} else if req.Commit != nil {
-		strategy = &deployment.CommitStrategy{Commit: *req.Commit}
-	} else if req.Branch != nil {
-		strategy = &deployment.BranchStrategy{Branch: *req.Branch}
+	if req.Tag != "" {
+		strategy = &deployment.TagStrategy{Tag: req.Tag}
+	} else if req.Commit != "" {
+		strategy = &deployment.CommitStrategy{Commit: req.Commit}
+	} else if req.Branch != "" {
+		strategy = &deployment.BranchStrategy{Branch: req.Branch}
 	} else {
 		c.JSON(http.StatusBadRequest, gin.H{"error": ErrDeployMissingTarget})
 		return

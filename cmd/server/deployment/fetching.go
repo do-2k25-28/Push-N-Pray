@@ -14,12 +14,6 @@ const (
 	fetchStrategyDockerImage
 )
 
-var stateName = map[fetchProjectStrategyType]string{
-	fetchStrategyGit:         "git strategy",
-	fetchStrategyDockerfile:  "dockerfile strategy",
-	fetchStrategyDockerImage: "docker image strategy",
-}
-
 type fetchProjectStrategyService interface {
 	fetch(objectReference string) error
 }

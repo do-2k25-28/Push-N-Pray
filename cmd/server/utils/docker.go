@@ -38,8 +38,15 @@ func StopAndRemoveContainersByPattern(pattern string) error {
 		return fmt.Errorf("%w: %w", ErrDockerListFailed, err)
 	}
 	for _, name := range strings.Fields(string(out)) {
-		exec.Command("docker", "stop", name).Run()
-		exec.Command("docker", "rm", name).Run()
+		var errDockerStop = exec.Command("docker", "stop", name).Run()
+		if errDockerStop != nil {
+			return errDockerStop
+		}
+
+		var errDockerRm = exec.Command("docker", "rm", name).Run()
+		if errDockerRm != nil {
+			return errDockerRm
+		}
 	}
 	return nil
 }

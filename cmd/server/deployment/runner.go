@@ -23,7 +23,9 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		updateStatus(StatusError, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err), "")
 		return
 	}
-	defer os.RemoveAll(workspaceDir)
+	defer func() {
+		var _ = os.RemoveAll(workspaceDir)
+	}()
 
 	fmt.Printf("Fetching repo %s into %s...\n", project.RepositoryUrl, workspaceDir)
 	if err := strategy.Fetch(project.RepositoryUrl, workspaceDir); err != nil {
