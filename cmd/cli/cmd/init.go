@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/session"
@@ -14,6 +13,7 @@ var manifestPath string = ""
 
 var projectName string
 var repositoryUrl string
+var initServerURL string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
@@ -30,7 +30,12 @@ var initCmd = &cobra.Command{
 		return session.VerifyAuth()
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := initAuthenticatedClient()
+		authOption, err := session.GetAuthClientOption(initServerURL)
+		if err != nil {
+			return err
+		}
+
+		client, err := api.NewClient(initServerURL, authOption)
 		if err != nil {
 			return err
 		}
@@ -63,30 +68,9 @@ func init() {
 
 	initCmd.Flags().StringVarP(&projectName, "name", "n", "", "Name for your new project")
 	initCmd.Flags().StringVarP(&repositoryUrl, "repository", "r", "", "URL of the repository (must be http(s))")
-	initCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	initCmd.Flags().StringVarP(&initServerURL, "server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 
 	var _ = initCmd.MarkFlagRequired("name")
 	var _ = initCmd.MarkFlagRequired("repository")
 	var _ = initCmd.MarkFlagRequired("server")
-}
-
-func initAuthenticatedClient() (*api.Client, error) {
-	sessionConfig, err := session.Load()
-	if err != nil {
-		return nil, err
-	}
-
-	for _, s := range sessionConfig.Sessions.Classic {
-		if s.URL != "" && s.Email != "" && s.Token != "" {
-			return api.NewClient(s.URL, api.WithBasicAuth(s.Email, s.Token))
-		}
-	}
-
-	for _, s := range sessionConfig.Sessions.Bearer {
-		if s.URL != "" && s.AccessToken != "" {
-			return api.NewClient(s.URL, api.WithBearerToken(s.AccessToken))
-		}
-	}
-
-	return nil, fmt.Errorf("no valid session found, run `pushnpray login` first")
 }

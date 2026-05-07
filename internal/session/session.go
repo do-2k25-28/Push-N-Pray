@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"pushnpray/pkg/api"
 
 	"github.com/pelletier/go-toml/v2"
 )
@@ -116,6 +117,33 @@ func SaveBearerSession(url, accessToken, refreshToken string) error {
 	})
 
 	return Save(sessionConfig)
+}
+
+// GetAuthClientOption returns an API authentication option for the given server URL.
+// It picks credentials from the matching saved session (classic first, then bearer).
+func GetAuthClientOption(serverURL string) (api.Option, error) {
+	if serverURL == "" {
+		return nil, errors.New("server URL is required")
+	}
+
+	sessionConfig, err := Load()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range sessionConfig.Sessions.Classic {
+		if s.URL == serverURL && s.Email != "" && s.Token != "" {
+			return api.WithBasicAuth(s.Email, s.Token), nil
+		}
+	}
+
+	for _, s := range sessionConfig.Sessions.Bearer {
+		if s.URL == serverURL && s.AccessToken != "" {
+			return api.WithBearerToken(s.AccessToken), nil
+		}
+	}
+
+	return nil, errors.New("no valid session found for this server, run `pushnpray login --server <url>` first")
 }
 
 // VerifyAuth validates that the user is considered logged in.
