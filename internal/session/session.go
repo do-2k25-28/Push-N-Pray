@@ -92,10 +92,6 @@ func SaveBearerSession(url, accessToken, refreshToken string) error {
 // GetAuthClientOption returns an API authentication option for the given server URL.
 // It picks credentials from the matching saved session (classic first, then bearer).
 func GetAuthClientOption(serverURL string) (api.Option, error) {
-	if serverURL == "" {
-		return nil, fmt.Errorf("server URL is required")
-	}
-
 	sessionConfig, err := Load()
 	if err != nil {
 		return nil, err
