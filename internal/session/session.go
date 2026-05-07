@@ -49,7 +49,7 @@ func Load() (*Config, error) {
 }
 
 // Save writes the complete session config to disk.
-func Save(sessionConfig *Config) error {
+func (sessionConfig *Config) Save() error {
 	path, err := configPath()
 	if err != nil {
 		return err
@@ -77,22 +77,7 @@ func SaveClassicSession(url, email, token string) error {
 		return err
 	}
 
-	for i := range sessionConfig.Sessions.Classic {
-		if sessionConfig.Sessions.Classic[i].URL == url {
-			sessionConfig.Sessions.Classic[i].URL = url
-			sessionConfig.Sessions.Classic[i].Email = email
-			sessionConfig.Sessions.Classic[i].Token = token
-			return Save(sessionConfig)
-		}
-	}
-
-	sessionConfig.Sessions.Classic = append(sessionConfig.Sessions.Classic, ClassicSession{
-		URL:   url,
-		Email: email,
-		Token: token,
-	})
-
-	return Save(sessionConfig)
+	return sessionConfig.SaveClassicSession(url, email, token)
 }
 
 func SaveBearerSession(url, accessToken, refreshToken string) error {
@@ -101,22 +86,7 @@ func SaveBearerSession(url, accessToken, refreshToken string) error {
 		return err
 	}
 
-	for i := range sessionConfig.Sessions.Bearer {
-		if sessionConfig.Sessions.Bearer[i].URL == url {
-			sessionConfig.Sessions.Bearer[i].URL = url
-			sessionConfig.Sessions.Bearer[i].AccessToken = accessToken
-			sessionConfig.Sessions.Bearer[i].RefreshToken = refreshToken
-			return Save(sessionConfig)
-		}
-	}
-
-	sessionConfig.Sessions.Bearer = append(sessionConfig.Sessions.Bearer, BearerSession{
-		URL:          url,
-		AccessToken:  accessToken,
-		RefreshToken: refreshToken,
-	})
-
-	return Save(sessionConfig)
+	return sessionConfig.SaveBearerSession(url, accessToken, refreshToken)
 }
 
 // GetAuthClientOption returns an API authentication option for the given server URL.
@@ -131,6 +101,10 @@ func GetAuthClientOption(serverURL string) (api.Option, error) {
 		return nil, err
 	}
 
+	return sessionConfig.GetAuthClientOption(serverURL)
+}
+
+func (sessionConfig *Config) GetAuthClientOption(serverURL string) (api.Option, error) {
 	for _, s := range sessionConfig.Sessions.Classic {
 		if s.URL == serverURL && s.Email != "" && s.Token != "" {
 			return api.WithBasicAuth(s.Email, s.Token), nil
@@ -155,6 +129,48 @@ func VerifyAuth() error {
 		return fmt.Errorf("you are not logged in, run `pushnpray login` first")
 	}
 
+	return sessionConfig.VerifyAuth()
+}
+
+func (sessionConfig *Config) SaveClassicSession(url, email, token string) error {
+	for i := range sessionConfig.Sessions.Classic {
+		if sessionConfig.Sessions.Classic[i].URL == url {
+			sessionConfig.Sessions.Classic[i].URL = url
+			sessionConfig.Sessions.Classic[i].Email = email
+			sessionConfig.Sessions.Classic[i].Token = token
+			return sessionConfig.Save()
+		}
+	}
+
+	sessionConfig.Sessions.Classic = append(sessionConfig.Sessions.Classic, ClassicSession{
+		URL:   url,
+		Email: email,
+		Token: token,
+	})
+
+	return sessionConfig.Save()
+}
+
+func (sessionConfig *Config) SaveBearerSession(url, accessToken, refreshToken string) error {
+	for i := range sessionConfig.Sessions.Bearer {
+		if sessionConfig.Sessions.Bearer[i].URL == url {
+			sessionConfig.Sessions.Bearer[i].URL = url
+			sessionConfig.Sessions.Bearer[i].AccessToken = accessToken
+			sessionConfig.Sessions.Bearer[i].RefreshToken = refreshToken
+			return sessionConfig.Save()
+		}
+	}
+
+	sessionConfig.Sessions.Bearer = append(sessionConfig.Sessions.Bearer, BearerSession{
+		URL:          url,
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+	})
+
+	return sessionConfig.Save()
+}
+
+func (sessionConfig *Config) VerifyAuth() error {
 	for _, s := range sessionConfig.Sessions.Classic {
 		if s.URL != "" && s.Email != "" && s.Token != "" {
 			return nil
