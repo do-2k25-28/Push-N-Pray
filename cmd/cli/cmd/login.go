@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"fmt"
+	"errors"
+	"pushnpray/internal/session"
 	"pushnpray/pkg/api"
 
 	"github.com/spf13/cobra"
@@ -17,13 +18,15 @@ var loginCmd = &cobra.Command{
 	Short: "Authenticate with email/password or a personal access token",
 	Long:  "Start a session by exchanging credentials for tokens and storing them locally for future commands.",
 	RunE: func(cmd *cobra.Command, args []string) error {
-		client, err := api.NewClient(serverUrl)
-		if err != nil {
-			return err
-		}
-
 		if password != "" {
-			fmt.Println("Loggin in with", email, password)
+			if email == "" {
+				return errors.New("email is required when using password login")
+			}
+
+			client, err := api.NewClient(serverUrl)
+			if err != nil {
+				return err
+			}
 
 			response, err := client.Login(cmd.Context(), api.LoginRequest{
 				Email:    email,
@@ -34,15 +37,14 @@ var loginCmd = &cobra.Command{
 				return err
 			}
 
-			fmt.Println("Logged in", response.AccessToken, response.RefreshToken)
-
-			// TODO: write access and refresh token to file
-		} else {
-			fmt.Println("Logging in with PAT", token)
-			// TODO: write pat to file
+			return session.SaveBearerSession(serverUrl, response.AccessToken, response.RefreshToken)
 		}
 
-		return nil
+		if email == "" {
+			return errors.New("email is required when using token login")
+		}
+
+		return session.SaveClassicSession(serverUrl, email, token)
 	},
 	SilenceUsage: true,
 }
@@ -57,5 +59,4 @@ func init() {
 
 	loginCmd.MarkFlagsOneRequired("password", "token")
 	loginCmd.MarkFlagsMutuallyExclusive("password", "token")
-	_ = loginCmd.MarkFlagRequired("email")
 }
