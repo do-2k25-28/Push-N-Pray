@@ -69,10 +69,6 @@ func NewFetchProjectService(strategy fetchProjectStrategyType) *fetchProjectServ
 	}
 }
 
-func (fps *fetchProjectService) getStrategy() fetchProjectStrategyType {
-	return fps.strategy
-}
-
 func (fps *fetchProjectService) fetch(objectReference string) error {
 	if fps.service == nil {
 		return ErrNoStrategyConfigured
