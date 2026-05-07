@@ -123,7 +123,7 @@ func SaveBearerSession(url, accessToken, refreshToken string) error {
 // It picks credentials from the matching saved session (classic first, then bearer).
 func GetAuthClientOption(serverURL string) (api.Option, error) {
 	if serverURL == "" {
-		return nil, errors.New("server URL is required")
+		return nil, fmt.Errorf("server URL is required")
 	}
 
 	sessionConfig, err := Load()
@@ -143,7 +143,7 @@ func GetAuthClientOption(serverURL string) (api.Option, error) {
 		}
 	}
 
-	return nil, errors.New("no valid session found for this server, run `pushnpray login --server <url>` first")
+	return nil, fmt.Errorf("no valid session found for this server, run `pushnpray login --server <url>` first")
 }
 
 // VerifyAuth validates that the user is considered logged in.
@@ -152,7 +152,7 @@ func GetAuthClientOption(serverURL string) (api.Option, error) {
 func VerifyAuth() error {
 	sessionConfig, err := Load()
 	if err != nil {
-		return errors.New("you are not logged in, run `pushnpray login` first")
+		return fmt.Errorf("you are not logged in, run `pushnpray login` first")
 	}
 
 	for _, s := range sessionConfig.Sessions.Classic {
@@ -167,5 +167,5 @@ func VerifyAuth() error {
 		}
 	}
 
-	return errors.New("you are not logged in, run `pushnpray login` first")
+	return fmt.Errorf("you are not logged in, run `pushnpray login` first")
 }
