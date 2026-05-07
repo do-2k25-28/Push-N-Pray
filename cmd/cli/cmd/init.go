@@ -1,11 +1,13 @@
 package cmd
 
 import (
-	"github.com/google/uuid"
-	"github.com/spf13/cobra"
+	"fmt"
 	"os"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/session"
+	"pushnpray/pkg/api"
+
+	"github.com/spf13/cobra"
 )
 
 var manifestPath string = ""
@@ -28,13 +30,21 @@ var initCmd = &cobra.Command{
 		return session.VerifyAuth()
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: POST v1/projects
+		client, err := initAuthenticatedClient()
+		if err != nil {
+			return err
+		}
 
-		// TODO: Get it from the response
-		projectId := uuid.New()
+		projectResponse, err := client.CreateProject(cmd.Context(), api.CreateProjectRequest{
+			Slug:          projectName,
+			RepositoryURL: repositoryUrl,
+		})
+		if err != nil {
+			return err
+		}
 
 		man := manifest.Manifest{
-			ProjectId:     projectId.String(),
+			ProjectId:     projectResponse.ID,
 			RepositoryUrl: repositoryUrl,
 		}
 
@@ -56,4 +66,25 @@ func init() {
 
 	var _ = initCmd.MarkFlagRequired("name")
 	var _ = initCmd.MarkFlagRequired("repository")
+}
+
+func initAuthenticatedClient() (*api.Client, error) {
+	sessionConfig, err := session.Load()
+	if err != nil {
+		return nil, err
+	}
+
+	for _, s := range sessionConfig.Sessions.Classic {
+		if s.URL != "" && s.Email != "" && s.Token != "" {
+			return api.NewClient(s.URL, api.WithBasicAuth(s.Email, s.Token))
+		}
+	}
+
+	for _, s := range sessionConfig.Sessions.Bearer {
+		if s.URL != "" && s.AccessToken != "" {
+			return api.NewClient(s.URL, api.WithBearerToken(s.AccessToken))
+		}
+	}
+
+	return nil, fmt.Errorf("no valid session found, run `pushnpray login` first")
 }
