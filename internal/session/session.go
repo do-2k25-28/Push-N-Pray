@@ -39,16 +39,16 @@ func Load() (*Config, error) {
 		return nil, fmt.Errorf("read session file: %w", err)
 	}
 
-	var cfg Config
-	if err := toml.Unmarshal(data, &cfg); err != nil {
+	var sessionConfig Config
+	if err := toml.Unmarshal(data, &sessionConfig); err != nil {
 		return nil, fmt.Errorf("unmarshal session: %w", err)
 	}
 
-	return &cfg, nil
+	return &sessionConfig, nil
 }
 
 // Save writes the complete session config to disk.
-func Save(cfg *Config) error {
+func Save(sessionConfig *Config) error {
 	path, err := configPath()
 	if err != nil {
 		return err
@@ -58,7 +58,7 @@ func Save(cfg *Config) error {
 		return fmt.Errorf("create config directory: %w", err)
 	}
 
-	data, err := toml.Marshal(cfg)
+	data, err := toml.Marshal(sessionConfig)
 	if err != nil {
 		return fmt.Errorf("marshal session: %w", err)
 	}
@@ -71,69 +71,69 @@ func Save(cfg *Config) error {
 }
 
 func SaveClassicSession(url, email, token string) error {
-	cfg, err := Load()
+	sessionConfig, err := Load()
 	if err != nil {
 		return err
 	}
 
-	for i := range cfg.Sessions.Classic {
-		if cfg.Sessions.Classic[i].URL == url {
-			cfg.Sessions.Classic[i].URL = url
-			cfg.Sessions.Classic[i].Email = email
-			cfg.Sessions.Classic[i].Token = token
-			return Save(cfg)
+	for i := range sessionConfig.Sessions.Classic {
+		if sessionConfig.Sessions.Classic[i].URL == url {
+			sessionConfig.Sessions.Classic[i].URL = url
+			sessionConfig.Sessions.Classic[i].Email = email
+			sessionConfig.Sessions.Classic[i].Token = token
+			return Save(sessionConfig)
 		}
 	}
 
-	cfg.Sessions.Classic = append(cfg.Sessions.Classic, ClassicSession{
+	sessionConfig.Sessions.Classic = append(sessionConfig.Sessions.Classic, ClassicSession{
 		URL:   url,
 		Email: email,
 		Token: token,
 	})
 
-	return Save(cfg)
+	return Save(sessionConfig)
 }
 
 func SaveBearerSession(url, accessToken, refreshToken string) error {
-	cfg, err := Load()
+	sessionConfig, err := Load()
 	if err != nil {
 		return err
 	}
 
-	for i := range cfg.Sessions.Bearer {
-		if cfg.Sessions.Bearer[i].URL == url {
-			cfg.Sessions.Bearer[i].URL = url
-			cfg.Sessions.Bearer[i].AccessToken = accessToken
-			cfg.Sessions.Bearer[i].RefreshToken = refreshToken
-			return Save(cfg)
+	for i := range sessionConfig.Sessions.Bearer {
+		if sessionConfig.Sessions.Bearer[i].URL == url {
+			sessionConfig.Sessions.Bearer[i].URL = url
+			sessionConfig.Sessions.Bearer[i].AccessToken = accessToken
+			sessionConfig.Sessions.Bearer[i].RefreshToken = refreshToken
+			return Save(sessionConfig)
 		}
 	}
 
-	cfg.Sessions.Bearer = append(cfg.Sessions.Bearer, BearerSession{
+	sessionConfig.Sessions.Bearer = append(sessionConfig.Sessions.Bearer, BearerSession{
 		URL:          url,
 		AccessToken:  accessToken,
 		RefreshToken: refreshToken,
 	})
 
-	return Save(cfg)
+	return Save(sessionConfig)
 }
 
 // VerifyAuth validates that the user is considered logged in.
 // It checks that a session file exists and that the access token is not empty.
 // It returns a user-facing error message when authentication is missing/invalid.
 func VerifyAuth() error {
-	cfg, err := Load()
+	sessionConfig, err := Load()
 	if err != nil {
 		return errors.New("you are not logged in, run `pushnpray login` first")
 	}
 
-	for _, s := range cfg.Sessions.Classic {
+	for _, s := range sessionConfig.Sessions.Classic {
 		if s.URL != "" && s.Email != "" && s.Token != "" {
 			return nil
 		}
 	}
 
-	for _, s := range cfg.Sessions.Bearer {
+	for _, s := range sessionConfig.Sessions.Bearer {
 		if s.URL != "" && s.AccessToken != "" {
 			return nil
 		}
