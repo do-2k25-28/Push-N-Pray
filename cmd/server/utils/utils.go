@@ -1,15 +1,17 @@
-package main
+package utils
 
 import (
 	"fmt"
 	"net"
-	"os/exec"
+	"path/filepath"
 	"strconv"
 )
 
-func CheckIfDockerInstalled() bool {
-	_, err := exec.LookPath("docker")
-	return err == nil
+func ResolvePath(base, path string) string {
+	if filepath.IsAbs(path) {
+		return path
+	}
+	return filepath.Join(base, path)
 }
 
 func FindAvailablePort(defaultPort string) string {
@@ -28,7 +30,6 @@ func FindAvailablePort(defaultPort string) string {
 		port++
 	}
 
-	// Fallback to let the OS pick a random available port
 	l, err := net.Listen("tcp", ":0")
 	if err == nil {
 		defer func() {
