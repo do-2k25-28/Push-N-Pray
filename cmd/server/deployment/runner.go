@@ -18,22 +18,30 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		}
 	}
 
-	workspaceDir := filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
-	if err := os.MkdirAll(workspaceDir, 0755); err != nil {
-		updateStatus(StatusError, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err), "")
-		return
-	}
-	defer func() {
-		var _ = os.RemoveAll(workspaceDir)
-	}()
+	var manifestPath string
+	var workspaceDir string
 
-	fmt.Printf("Fetching repo %s into %s...\n", project.RepositoryUrl, workspaceDir)
-	if err := strategy.Fetch(project.RepositoryUrl, workspaceDir); err != nil {
-		updateStatus(StatusError, fmt.Sprintf("%s: %v", msgFetchFailed, err), "")
-		return
+	if filepath.IsAbs(manifestFile) {
+		manifestPath = manifestFile
+		workspaceDir = filepath.Dir(manifestFile)
+	} else {
+		workspaceDir = filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
+		if err := os.MkdirAll(workspaceDir, 0755); err != nil {
+			updateStatus(StatusError, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err), "")
+			return
+		}
+		defer func() {
+			var _ = os.RemoveAll(workspaceDir)
+		}()
+
+		fmt.Printf("Fetching repo %s into %s...\n", project.RepositoryUrl, workspaceDir)
+		if err := strategy.Fetch(project.RepositoryUrl, workspaceDir); err != nil {
+			updateStatus(StatusError, fmt.Sprintf("%s: %v", msgFetchFailed, err), "")
+			return
+		}
+		manifestPath = filepath.Join(workspaceDir, manifestFile)
 	}
 
-	manifestPath := filepath.Join(workspaceDir, manifestFile)
 	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
 		updateStatus(StatusError, fmt.Sprintf(msgManifestMissing, manifestFile), "")
 		return

@@ -6,12 +6,16 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/exec"
+	"path/filepath"
 	"sync"
 
 	dockerSdk "github.com/docker/go-sdk/client"
 	sdkcontainer "github.com/docker/go-sdk/container"
 	sdkimage "github.com/docker/go-sdk/image"
 	sdknetwork "github.com/docker/go-sdk/network"
+	"github.com/moby/moby/api/types/container"
+	dockerclient "github.com/moby/moby/client"
 )
 
 type Client struct {
@@ -83,6 +87,8 @@ func (c *Client) CreateNetwork(ctx context.Context, name string) (*sdknetwork.Ne
 	return nw, nil
 }
 
+var ErrDockerStopRemoveFailed = errors.New("failed to stop and remove the container")
+
 // CreateContainer creates a container without starting it.
 func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdkcontainer.Container, error) {
 	if cfg.Image == "" {
@@ -122,4 +128,123 @@ func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdk
 	}
 
 	return ctr, nil
+}
+
+// RunContainerFromConfig creates and starts a container using a full ContainerConfig.
+func (c *Client) RunContainerFromConfig(ctx context.Context, cfg ContainerConfig) error {
+	if cfg.Image == "" {
+		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Image is required")
+	}
+	if cfg.Name == "" {
+		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Name is required")
+	}
+
+	opts := []sdkcontainer.ContainerCustomizer{
+		sdkcontainer.WithClient(c.docker),
+		sdkcontainer.WithImage(cfg.Image),
+		sdkcontainer.WithName(cfg.Name),
+	}
+
+	if cfg.Network != nil {
+		opts = append(opts, sdkcontainer.WithNetwork(cfg.NetworkAliases, cfg.Network))
+	}
+	if len(cfg.Env) > 0 {
+		opts = append(opts, sdkcontainer.WithEnv(cfg.Env))
+	}
+	if len(cfg.Cmd) > 0 {
+		opts = append(opts, sdkcontainer.WithCmd(cfg.Cmd...))
+	}
+	if len(cfg.ExposedPorts) > 0 {
+		opts = append(opts, sdkcontainer.WithExposedPorts(cfg.ExposedPorts...))
+	}
+
+	fmt.Printf("Running docker container %s from image %s...\n", cfg.Name, cfg.Image)
+	if _, err := sdkcontainer.Run(ctx, opts...); err != nil {
+		return fmt.Errorf("dockerwrapper: RunContainerFromConfig %q: %w", cfg.Name, err)
+	}
+	return nil
+}
+
+// BuildImage builds a Docker image with the given tag from the given Dockerfile and context directory.
+// dockerfilePath may be absolute; it is resolved relative to contextDir for the SDK.
+func (c *Client) BuildImage(ctx context.Context, tag, dockerfilePath, contextDir string) error {
+	if contextDir == "" {
+		contextDir = "."
+	}
+	relDockerfile, err := filepath.Rel(contextDir, dockerfilePath)
+	if err != nil {
+		return fmt.Errorf("dockerwrapper: BuildImage: resolve dockerfile path: %w", err)
+	}
+	fmt.Printf("Building docker image %s from %s...\n", tag, dockerfilePath)
+	if _, err := sdkimage.BuildFromDir(ctx, contextDir, relDockerfile, tag, sdkimage.WithBuildClient(c.docker)); err != nil {
+		return fmt.Errorf("dockerwrapper: BuildImage %q: %w", tag, err)
+	}
+	return nil
+}
+
+// RunContainer creates and starts a container with the given name from the given image.
+func (c *Client) RunContainer(ctx context.Context, containerName, imageName string) error {
+	fmt.Printf("Running docker container %s from image %s...\n", containerName, imageName)
+	_, err := sdkcontainer.Run(ctx,
+		sdkcontainer.WithClient(c.docker),
+		sdkcontainer.WithName(containerName),
+		sdkcontainer.WithImage(imageName),
+	)
+	if err != nil {
+		return fmt.Errorf("dockerwrapper: RunContainer %q: %w", containerName, err)
+	}
+	return nil
+}
+
+func (c *Client) listContainersByPattern(ctx context.Context, pattern string) ([]container.Summary, error) {
+	result, err := c.docker.ContainerList(ctx, dockerclient.ContainerListOptions{
+		All:     true,
+		Filters: make(dockerclient.Filters).Add("name", pattern),
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dockerwrapper: list containers: %w", err)
+	}
+	return result.Items, nil
+}
+
+// StopContainersByPattern stops all running containers whose names match the given pattern.
+func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) error {
+	containers, err := c.listContainersByPattern(ctx, pattern)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, ctr := range containers {
+		if _, err := c.docker.ContainerStop(ctx, ctr.ID, dockerclient.ContainerStopOptions{}); err != nil {
+			errs = append(errs, fmt.Errorf("stop %s: %w", ctr.ID, err))
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("dockerwrapper: StopContainersByPattern: %w", errors.Join(errs...))
+	}
+	return nil
+}
+
+// RemoveContainersByPattern removes all containers whose names match the given pattern.
+func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) error {
+	containers, err := c.listContainersByPattern(ctx, pattern)
+	if err != nil {
+		return err
+	}
+	var errs []error
+	for _, ctr := range containers {
+		if _, err := c.docker.ContainerRemove(ctx, ctr.ID, dockerclient.ContainerRemoveOptions{Force: true}); err != nil {
+			errs = append(errs, fmt.Errorf("remove %s: %w", ctr.ID, err))
+		}
+	}
+	if len(errs) > 0 {
+		return fmt.Errorf("dockerwrapper: RemoveContainersByPattern: %w", errors.Join(errs...))
+	}
+	return nil
+}
+
+// CheckIfDockerInstalled returns true if the Docker CLI is available in the system PATH.
+func CheckIfDockerInstalled() bool {
+	_, err := exec.LookPath("docker")
+	return err == nil
 }

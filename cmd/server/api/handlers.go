@@ -3,10 +3,11 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"path/filepath"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/deployment"
 	"pushnpray/cmd/server/models"
-	"pushnpray/cmd/server/utils"
+	"pushnpray/internal"
 	pkgapi "pushnpray/pkg/api"
 
 	"github.com/gin-gonic/gin"
@@ -47,9 +48,17 @@ func DeleteProject(c *gin.Context) {
 	}
 
 	pattern := fmt.Sprintf("%s-%s", project.Slug, project.ID)
-	var errStopRemoveContainer = utils.StopAndRemoveContainersByPattern(pattern)
-	if errStopRemoveContainer != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.ErrDockerStopRemoveFailed})
+	dockerClient, err := internal.NewClient(c.Request.Context())
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		return
+	}
+	if err := dockerClient.StopContainersByPattern(c.Request.Context(), pattern); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		return
+	}
+	if err := dockerClient.RemoveContainersByPattern(c.Request.Context(), pattern); err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
 	}
 
 	if err := database.GetDB().Delete(&project).Error; err != nil {
@@ -132,7 +141,7 @@ func DeployProject(c *gin.Context) {
 		strategy = &deployment.CommitStrategy{Commit: req.Commit}
 	} else if req.Branch != "" {
 		strategy = &deployment.BranchStrategy{Branch: req.Branch}
-	} else {
+	} else if req.Manifest == nil || !filepath.IsAbs(*req.Manifest) {
 		c.JSON(http.StatusBadRequest, gin.H{"error": ErrDeployMissingTarget})
 		return
 	}

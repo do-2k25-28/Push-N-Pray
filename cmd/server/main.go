@@ -7,10 +7,11 @@ import (
 	"pushnpray/cmd/server/api"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/utils"
+	"pushnpray/internal"
 )
 
 func main() {
-	if !utils.CheckIfDockerInstalled() {
+	if !internal.CheckIfDockerInstalled() {
 		log.Fatalf("Docker is not installed or not available in PATH. Please install Docker before running this server.")
 		os.Exit(1)
 	}

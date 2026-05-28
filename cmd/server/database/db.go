@@ -8,6 +8,8 @@ import (
 	"github.com/joho/godotenv"
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+
+	"pushnpray/cmd/server/models"
 )
 
 var dbInstance *gorm.DB
@@ -54,5 +56,9 @@ func InitDB() {
 	dbInstance, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("failed to connect database: ", err)
+	}
+
+	if err := dbInstance.AutoMigrate(&models.Project{}, &models.Deployment{}); err != nil {
+		log.Fatal("failed to migrate database: ", err)
 	}
 }
