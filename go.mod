@@ -5,7 +5,7 @@ go 1.26.2
 require github.com/spf13/cobra v1.10.2
 
 require (
-	github.com/docker/go-sdk/container v0.1.0-alpha014
+	github.com/docker/go-sdk/container v0.1.0-alpha015
 	github.com/docker/go-sdk/image v0.1.0-alpha015
 	github.com/docker/go-sdk/network v0.1.0-alpha013
 	github.com/gin-gonic/gin v1.12.0
@@ -50,6 +50,7 @@ require (
 	github.com/jinzhu/inflection v1.0.0 // indirect
 	github.com/jinzhu/now v1.1.5 // indirect
 	github.com/kevinburke/ssh_config v1.2.0 // indirect
+	github.com/google/uuid v1.6.0 // indirect
 	github.com/klauspost/compress v1.18.0 // indirect
 	github.com/moby/docker-image-spec v1.3.1 // indirect
 	github.com/moby/go-archive v0.1.0 // indirect

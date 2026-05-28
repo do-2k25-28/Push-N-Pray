@@ -3,41 +3,61 @@ package cmd
 import (
 	"os"
 	"pushnpray/internal/manifest"
+	"pushnpray/internal/session"
+	"pushnpray/pkg/api"
 
-	"github.com/google/uuid"
 	"github.com/spf13/cobra"
 )
-
-var manifestPath string = ""
-
-var projectName string
-var repositoryUrl string
 
 var initCmd = &cobra.Command{
 	Use:   "init",
 	Short: "Initialize a new project",
 	Long:  `Create a project on the platform using the current repository metadata and store the project id locally.`,
 	PreRunE: func(cmd *cobra.Command, args []string) error {
-		file, err := cmd.Root().Flags().GetString("file")
+		return session.VerifyAuth()
+	},
+	RunE: func(cmd *cobra.Command, args []string) error {
+		projectName, err := cmd.Flags().GetString("name")
 		if err != nil {
 			return err
 		}
 
-		manifestPath = file
+		repositoryURL, err := cmd.Flags().GetString("repository")
+		if err != nil {
+			return err
+		}
 
-		// TODO: Check if user is logged in
+		serverURL, err := cmd.Flags().GetString("server")
+		if err != nil {
+			return err
+		}
 
-		return nil
-	},
-	RunE: func(cmd *cobra.Command, args []string) error {
-		// TODO: POST v1/projects
+		manifestPath, err := cmd.Root().Flags().GetString("file")
+		if err != nil {
+			return err
+		}
 
-		// TODO: Get it from the response
-		projectId := uuid.New()
+		authOption, err := session.GetAuthClientOption(serverURL)
+		if err != nil {
+			return err
+		}
+
+		client, err := api.NewClient(serverURL, authOption)
+		if err != nil {
+			return err
+		}
+
+		projectResponse, err := client.CreateProject(cmd.Context(), api.CreateProjectRequest{
+			Slug:          projectName,
+			RepositoryURL: repositoryURL,
+		})
+		if err != nil {
+			return err
+		}
 
 		man := manifest.Manifest{
-			ProjectId:     projectId.String(),
-			RepositoryUrl: repositoryUrl,
+			ProjectId:     projectResponse.ID,
+			RepositoryUrl: repositoryURL,
 		}
 
 		data, err := manifest.Marshal(&man)
@@ -53,8 +73,9 @@ var initCmd = &cobra.Command{
 func init() {
 	rootCmd.AddCommand(initCmd)
 
-	initCmd.Flags().StringVarP(&projectName, "name", "n", "", "Name for your new project")
-	initCmd.Flags().StringVarP(&repositoryUrl, "repository", "r", "", "URL of the repository (must be http(s))")
+	initCmd.Flags().StringP("name", "n", "", "Name for your new project")
+	initCmd.Flags().StringP("repository", "r", "", "URL of the repository (must be http(s))")
+	initCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 
 	var _ = initCmd.MarkFlagRequired("name")
 	var _ = initCmd.MarkFlagRequired("repository")
