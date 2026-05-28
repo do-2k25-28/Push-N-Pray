@@ -3,9 +3,10 @@ services:
     image: library/postgres:18.3
     environment:
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DATABASE: pushnpray
+      POSTGRES_DB: pushnpray
     volumes:
       - postgres:/var/lib/postgresql
+      - ./db-init:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
 

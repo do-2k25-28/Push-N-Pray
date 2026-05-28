@@ -3,22 +3,29 @@ package main
 import (
 	"log"
 	"os"
+
+	"pushnpray/cmd/server/api"
+	"pushnpray/cmd/server/database"
+	"pushnpray/cmd/server/utils"
+	"pushnpray/internal"
 )
 
 func main() {
-	if !CheckIfDockerInstalled() {
+	if !internal.CheckIfDockerInstalled() {
 		log.Fatalf("Docker is not installed or not available in PATH. Please install Docker before running this server.")
 		os.Exit(1)
 	}
 
-	router := NewRouter()
+	database.InitDB()
+
+	router := api.NewRouter()
 
 	var serverPort = os.Getenv("HTTP_PORT")
 	if serverPort == "" {
 		serverPort = "4000"
 	}
 
-	serverPort = FindAvailablePort(serverPort)
+	serverPort = utils.FindAvailablePort(serverPort)
 	log.Printf("using port %s", serverPort)
 	err := router.Run(":" + serverPort)
 

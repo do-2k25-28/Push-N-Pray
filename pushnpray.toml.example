@@ -1,0 +1,13 @@
+project-id = "3c41c9e1-9c37-403b-96a2-e51880583f2c"
+repo-url = "https://github.com/mon/repo.git"
+
+[apps]
+[[apps.docker]]
+name = "nginx"
+
+image = "docker.io/library/nginx:latest"
+
+[[apps.docker]]
+name = "front"
+
+image = "docker.io/library/httpd:latest"
