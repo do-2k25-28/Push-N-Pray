@@ -12,8 +12,8 @@ install-cli:
 build-server:
 	go build -ldflags="-s -w" -o $(BIN)/server ./cmd/server
 
-run-server:
-	go run ./cmd/server/main.go
+run:
+	go run ./cmd/server
 
 # Clean build artifacts
 clean:
