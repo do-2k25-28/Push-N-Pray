@@ -60,6 +60,7 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		return
 	}
 
+	reportStatus(models.InProgress, fmt.Sprintf("Deploying %d container(s)", len(projectConfig.Apps.Docker)+len(projectConfig.Apps.Dockerfile)))
 	deployService := NewDeployService()
 	if err := deployService.DeployProject(project.Slug, project.ID, projectConfig, workspaceDir); err != nil {
 		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgDeployFailed, err))
