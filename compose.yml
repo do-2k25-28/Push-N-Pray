@@ -7,8 +7,45 @@ services:
     volumes:
       - postgres:/var/lib/postgresql
       - ./db-init:/docker-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d pushnpray"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
     ports:
       - 5432:5432
 
+  docker:
+    image: library/docker:29.5.2-dind
+    privileged: 'true'
+    command: ['dockerd', '-H', 'tcp://0.0.0.0:2375', '--tls=false']
+    restart: 'unless-stopped'
+
+  server:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    volumes:
+      - go_build_cache:/root/.cache/go-build
+    environment:
+      DOCKER_HOST: tcp://docker:2375
+      DB_HOST: postgres
+      DB_PASSWORD: postgres
+      DB_NAME: pushnpray
+    depends_on:
+      postgres:
+        condition: service_healthy
+    develop:
+      watch:
+        - path: .
+          target: /src
+          action: sync+restart
+          ignore:
+            - Dockerfile.dev
+        - path: Dockerfile.dev
+          action: rebuild
+
 volumes:
   postgres:
+  go_build_cache:
