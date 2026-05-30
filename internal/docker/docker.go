@@ -6,7 +6,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"os/exec"
 	"path/filepath"
 	"sync"
 
@@ -241,10 +240,4 @@ func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) 
 		return fmt.Errorf("dockerwrapper: RemoveContainersByPattern: %w", errors.Join(errs...))
 	}
 	return nil
-}
-
-// CheckIfDockerInstalled returns true if the Docker CLI is available in the system PATH.
-func CheckIfDockerInstalled() bool {
-	_, err := exec.LookPath("docker")
-	return err == nil
 }
