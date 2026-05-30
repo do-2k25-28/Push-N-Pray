@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"pushnpray/cmd/server/utils"
-	"pushnpray/internal"
+	"pushnpray/internal/docker"
 	"pushnpray/internal/manifest"
 )
 
@@ -16,7 +16,7 @@ func NewDeployService() *DeployService {
 
 func (s *DeployService) DeployProject(projectSlug string, projectID string, m *manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
-	dockerClient, err := internal.NewClient(ctx)
+	dockerClient, err := docker.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
