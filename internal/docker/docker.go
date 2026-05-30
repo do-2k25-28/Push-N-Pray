@@ -6,6 +6,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -16,6 +17,8 @@ import (
 	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 )
+
+var defaultDockerSocket = "/var/run/docker/sock"
 
 type Client struct {
 	docker dockerSdk.SDKClient
@@ -34,7 +37,13 @@ type ContainerConfig struct {
 }
 
 func NewClient(ctx context.Context) (*Client, error) {
-	client, err := dockerSdk.New(ctx)
+	dockerHost := os.Getenv("DOCKER_HOST")
+
+	if dockerHost == "" {
+		dockerHost = defaultDockerSocket
+	}
+
+	client, err := dockerSdk.New(ctx, dockerSdk.WithDockerHost(dockerHost))
 
 	if err != nil {
 		return nil, fmt.Errorf("dockerwrapper: create client: %w", err)
@@ -56,6 +65,7 @@ func (c *Client) PullImages(ctx context.Context, images ...string) error {
 		wg.Add(1)
 		go func(img string) {
 			defer wg.Done()
+
 			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker)); err != nil {
 				mu.Lock()
 				errs = append(errs, fmt.Errorf("pull %q: %w", img, err))

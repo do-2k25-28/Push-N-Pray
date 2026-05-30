@@ -38,6 +38,12 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 
 	for _, app := range m.Apps.Docker {
 		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
+
+		fmt.Printf("Pulling image %s\n", app.Image)
+		if err := dockerClient.PullImages(ctx, app.Image); err != nil {
+			return fmt.Errorf("unable to pull image %s, %w", app.Image, err)
+		}
+
 		fmt.Printf("Deploying Docker image app: %s\n", app.Name)
 		if err := dockerClient.RunContainer(ctx, containerName, app.Image); err != nil {
 			return fmt.Errorf(errFmtAppRunFailed+": %w", app.Name, err)
