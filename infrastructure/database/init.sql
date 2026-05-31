@@ -2,13 +2,13 @@
 
 CREATE TABLE IF NOT EXISTS users (
     id VARCHAR(255) PRIMARY KEY,
-    email VARCHAR NOT NULL,
+    email VARCHAR UNIQUE NOT NULL,
     password VARCHAR NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS refresh_tokens (
-    owner VARCHAR(255),
-    token VARCHAR(255),
+    owner VARCHAR(255) NOT NULL,
+    token VARCHAR(255) NOT NULL,
     PRIMARY KEY (owner, token)
 );
 

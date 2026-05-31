@@ -68,7 +68,48 @@ func Register(c *gin.Context) {
 }
 
 func Login(c *gin.Context) {
+	var req pkgapi.LoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
+		return
+	}
+	if req.Email == "" || req.Password == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
+		return
+	}
 
+	var user models.User
+	if err := database.GetDB().Where("email = ?", req.Email).First(&user).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	match, err := utils.CheckPasswordHash(req.Password, user.Password)
+	if err != nil || !match {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid credentials"})
+		return
+	}
+
+	accessToken, err := utils.GetJWTHelper().GenerateToken(user.ID, 24*time.Hour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	refreshToken := models.RefreshToken{
+		Owner: user.ID,
+		Token: uuid.NewString(),
+	}
+
+	if err := database.GetDB().Create(refreshToken).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pkgapi.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken.Token,
+	})
 }
 
 func Token(c *gin.Context) {
