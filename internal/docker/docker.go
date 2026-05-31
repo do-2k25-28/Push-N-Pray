@@ -52,6 +52,11 @@ func NewClient(ctx context.Context) (*Client, error) {
 	return &Client{docker: client}, nil
 }
 
+// We only support docker hub so no registry
+func registryCredentials(image string) (string, string, error) {
+	return "", "", nil
+}
+
 // PullImages pulls images concurrently. All pulls are attempted; errors are
 // collected and returned as a single joined error.
 func (c *Client) PullImages(ctx context.Context, images ...string) error {
@@ -66,7 +71,7 @@ func (c *Client) PullImages(ctx context.Context, images ...string) error {
 		go func(img string) {
 			defer wg.Done()
 
-			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker)); err != nil {
+			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker), sdkimage.WithCredentialsFn(registryCredentials)); err != nil {
 				mu.Lock()
 				errs = append(errs, fmt.Errorf("pull %q: %w", img, err))
 				mu.Unlock()
