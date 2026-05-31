@@ -18,13 +18,10 @@ const (
 )
 
 func ListDeployments(c *gin.Context) {
-	projectId := c.Param("projectId")
-	if err := database.GetDB().First(&models.Project{}, "id = ?", projectId).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": ErrProjectNotFound})
-		return
-	}
+	project := c.MustGet("project").(models.Project)
+
 	var deployments []models.Deployment
-	if err := database.GetDB().Where("project_id = ?", projectId).Order("created_at desc").Find(&deployments).Error; err != nil {
+	if err := database.GetDB().Where("project_id = ?", project.ID).Order("created_at desc").Find(&deployments).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrDeploymentListFailed})
 		return
 	}
@@ -32,10 +29,11 @@ func ListDeployments(c *gin.Context) {
 }
 
 func GetDeployment(c *gin.Context) {
-	projectId := c.Param("projectId")
+	project := c.MustGet("project").(models.Project)
+
 	deploymentId := c.Param("deploymentId")
 	var dep models.Deployment
-	if err := database.GetDB().First(&dep, "id = ? AND project_id = ?", deploymentId, projectId).Error; err != nil {
+	if err := database.GetDB().First(&dep, "id = ? AND project_id = ?", deploymentId, project.ID).Error; err != nil {
 		c.JSON(http.StatusNotFound, gin.H{"error": ErrDeploymentNotFound})
 		return
 	}
@@ -43,13 +41,7 @@ func GetDeployment(c *gin.Context) {
 }
 
 func DeployProject(c *gin.Context) {
-	projectId := c.Param("projectId")
-
-	var project models.Project
-	if err := database.GetDB().First(&project, "id = ?", projectId).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": ErrProjectNotFound})
-		return
-	}
+	project := c.MustGet("project").(models.Project)
 
 	var req DeployProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -72,7 +64,7 @@ func DeployProject(c *gin.Context) {
 	deploymentId := uuid.New().String()
 	dep := models.Deployment{
 		ID:        deploymentId,
-		ProjectID: projectId,
+		ProjectID: project.ID,
 		Status:    models.InProgress,
 	}
 

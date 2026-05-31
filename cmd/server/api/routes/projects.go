@@ -29,6 +29,8 @@ type DeployProjectRequest struct {
 }
 
 func CreateProject(c *gin.Context) {
+	userId := c.GetString("userID")
+
 	var req pkgapi.CreateProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
@@ -44,6 +46,7 @@ func CreateProject(c *gin.Context) {
 		ID:            id,
 		Slug:          req.Slug,
 		RepositoryUrl: req.RepositoryURL,
+		Owner:         userId,
 	}
 
 	if err := database.GetDB().Create(&project).Error; err != nil {
@@ -55,8 +58,10 @@ func CreateProject(c *gin.Context) {
 }
 
 func ListProjects(c *gin.Context) {
+	userId := c.GetString("userID")
+
 	var projects []models.Project
-	if err := database.GetDB().Find(&projects).Error; err != nil {
+	if err := database.GetDB().Find(&projects, "owner = ?", userId).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrProjectListFailed})
 		return
 	}
@@ -64,22 +69,12 @@ func ListProjects(c *gin.Context) {
 }
 
 func GetProject(c *gin.Context) {
-	projectId := c.Param("projectId")
-	var project models.Project
-	if err := database.GetDB().First(&project, "id = ?", projectId).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": ErrProjectNotFound})
-		return
-	}
+	project := c.MustGet("project").(models.Project)
 	c.JSON(http.StatusOK, project)
 }
 
 func DeleteProject(c *gin.Context) {
-	projectId := c.Param("projectId")
-	var project models.Project
-	if err := database.GetDB().First(&project, "id = ?", projectId).Error; err != nil {
-		c.JSON(http.StatusNotFound, gin.H{"error": ErrProjectNotFound})
-		return
-	}
+	project := c.MustGet("project").(models.Project)
 
 	pattern := fmt.Sprintf("%s-%s", project.Slug, project.ID)
 	dockerClient, err := internal.NewClient(c.Request.Context())

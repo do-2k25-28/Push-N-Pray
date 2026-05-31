@@ -2,62 +2,63 @@ package routes
 
 import (
 	"net/http"
+	"pushnpray/cmd/server/api/middleware"
 
 	"github.com/gin-gonic/gin"
 )
 
-const (
-	RouteHealthV1             = "/v1/health"
-	RouteAuthRegisterV1       = "/v1/auth/register"
-	RouteAuthLoginV1          = "/v1/auth/login"
-	RouteAuthTokenV1          = "/v1/auth/token"
-	RouteTokensV1             = "/v1/tokens"
-	RouteTokenDeleteV1        = "/v1/tokens/:tokenId"
-	RouteProjectsV1           = "/v1/projects"
-	RouteProjectV1            = "/v1/projects/:projectId"
-	RouteProjectDeployV1      = "/v1/projects/:projectId/deploy"
-	RouteProjectDeploymentsV1 = "/v1/projects/:projectId/deployments"
-	RouteProjectDeploymentV1  = "/v1/projects/:projectId/deployments/:deploymentId"
-	RouteProjectEnvV1         = "/v1/projects/:projectId/env"
-)
-
 func NewRouter() *gin.Engine {
-	r := gin.Default()
+	router := gin.Default()
 
-	r.GET(RouteHealthV1, func(c *gin.Context) {
-		c.String(http.StatusOK, "OK")
+	router.GET("/v1/health", func(c *gin.Context) {
+		c.Status(http.StatusOK)
 	})
 
 	// Auth
-	r.POST(RouteAuthRegisterV1, Register)
-	r.POST(RouteAuthLoginV1, Login)
-	r.POST(RouteAuthTokenV1, Token)
+	auth := router.Group("/v1/auth")
+
+	auth.POST("/register", Register)
+	auth.POST("/login", Login)
+	auth.POST("/token", Token)
 
 	// PAT
-	r.GET(RouteTokensV1, func(c *gin.Context) {
-		c.String(http.StatusOK, "GET "+RouteTokensV1)
+	tokens := router.Group("/v1/tokens")
+	router.Use(middleware.Auth())
+
+	tokens.GET("", func(c *gin.Context) {
+		c.Status(http.StatusOK)
 	})
-	r.POST(RouteTokensV1, func(c *gin.Context) {
-		c.String(http.StatusOK, "POST "+RouteTokensV1)
+	tokens.POST("", func(c *gin.Context) {
+		c.Status(http.StatusOK)
 	})
-	r.DELETE(RouteTokenDeleteV1, func(c *gin.Context) {
+	tokens.DELETE("/:tokenId", func(c *gin.Context) {
 		c.Status(http.StatusNoContent)
 	})
 
 	// Projects
-	r.POST(RouteProjectsV1, CreateProject)
-	r.GET(RouteProjectsV1, ListProjects)
-	r.GET(RouteProjectV1, GetProject)
-	r.DELETE(RouteProjectV1, DeleteProject)
+	projects := router.Group("/v1/projects")
+	projects.Use(middleware.Auth(), middleware.ProjectOwnership())
+
+	projects.POST("/:projectId", CreateProject)
+	projects.GET("", ListProjects)
+	projects.GET("/:projectId", GetProject)
+	projects.DELETE("/:projectId", DeleteProject)
 
 	// Deployments
-	r.POST(RouteProjectDeployV1, DeployProject)
-	r.GET(RouteProjectDeploymentsV1, ListDeployments)
-	r.GET(RouteProjectDeploymentV1, GetDeployment)
+	deployments := router.Group("/v1/deployments")
+	deployments.Use(middleware.Auth(), middleware.ProjectOwnership())
 
-	r.POST(RouteProjectEnvV1, func(c *gin.Context) {
+	deployments.POST("", DeployProject)
+	deployments.GET("", ListDeployments)
+	deployments.GET("/:deploymentId", GetDeployment)
+
+	// Environment variables
+	env := router.Group("/v1/projects/:projectId/env")
+	env.Use(middleware.Auth(), middleware.ProjectOwnership())
+
+	env.POST("", func(c *gin.Context) {
 		c.Status(http.StatusNoContent)
 	})
 
-	return r
+	return router
 }
