@@ -191,7 +191,7 @@ func (c *Client) DeleteProject(ctx context.Context, projectID string) error {
 }
 
 func (c *Client) DeployProject(ctx context.Context, projectID string, payload DeployProjectRequest) (*DeployProjectResponse, error) {
-	path := fmt.Sprintf("projects/%s/deploy", url.PathEscape(projectID))
+	path := fmt.Sprintf("projects/%s/deployments", url.PathEscape(projectID))
 	req, err := c.newRequest(ctx, http.MethodPost, path, payload)
 	if err != nil {
 		return nil, err
