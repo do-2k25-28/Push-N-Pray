@@ -150,7 +150,7 @@ func DeployProject(c *gin.Context) {
 	dep := models.Deployment{
 		ID:        deploymentId,
 		ProjectID: projectId,
-		Status:    "in-progress",
+		Status:    models.InProgress,
 	}
 
 	if err := database.GetDB().Create(&dep).Error; err != nil {
@@ -165,5 +165,5 @@ func DeployProject(c *gin.Context) {
 
 	go deployment.RunDeployment(dep, project, strategy, manifestPath)
 
-	c.JSON(http.StatusOK, gin.H{"id": deploymentId})
+	c.JSON(http.StatusAccepted, gin.H{"id": deploymentId})
 }

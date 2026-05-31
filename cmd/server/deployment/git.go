@@ -9,6 +9,7 @@ import (
 
 type GitFetchStrategy interface {
 	Fetch(repoURL, destDir string) error
+	DisplayName() string
 }
 
 type BranchStrategy struct {
@@ -27,6 +28,10 @@ func (s *BranchStrategy) Fetch(repoURL, destDir string) error {
 	return nil
 }
 
+func (s *BranchStrategy) DisplayName() string {
+	return "branch"
+}
+
 type TagStrategy struct {
 	Tag string
 }
@@ -41,6 +46,10 @@ func (s *TagStrategy) Fetch(repoURL, destDir string) error {
 		return fmt.Errorf("%w: %w", ErrRepoCloneFailed, err)
 	}
 	return nil
+}
+
+func (s *TagStrategy) DisplayName() string {
+	return "tag"
 }
 
 type CommitStrategy struct {
@@ -67,4 +76,8 @@ func (s *CommitStrategy) Fetch(repoURL, destDir string) error {
 		return fmt.Errorf("%w: %w", ErrCommitCheckoutFailed, err)
 	}
 	return nil
+}
+
+func (s *CommitStrategy) DisplayName() string {
+	return "commit"
 }

@@ -9,9 +9,6 @@ var (
 )
 
 const (
-	StatusError   = "error"
-	StatusSuccess = "success"
-
 	msgWorkspaceFailed = "Failed to create workspace"
 	msgFetchFailed     = "Failed to fetch repository"
 	msgManifestMissing = "Manifest %s not found in repository"
