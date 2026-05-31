@@ -22,12 +22,6 @@ const (
 	ErrProjectCreateFailed   = "Failed to create project"
 )
 
-// DeployProjectRequest extends the shared type with the server-only Manifest override.
-type DeployProjectRequest struct {
-	pkgapi.DeployProjectRequest
-	Manifest *string `json:"manifest,omitempty"`
-}
-
 func CreateProject(c *gin.Context) {
 	userId := c.GetString("userID")
 

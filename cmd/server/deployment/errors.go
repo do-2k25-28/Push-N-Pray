@@ -11,7 +11,7 @@ var (
 const (
 	msgWorkspaceFailed = "Failed to create workspace"
 	msgFetchFailed     = "Failed to fetch repository"
-	msgManifestMissing = "Manifest %s not found in repository"
+	msgManifestMissing = "Manifest not found in repository"
 	msgManifestInvalid = "Failed to parse manifest"
 	msgDeployFailed    = "Deployment failed"
 	msgDeploySuccess   = "Deployment successful"

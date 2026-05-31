@@ -2,10 +2,10 @@ package routes
 
 import (
 	"net/http"
-	"path/filepath"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/deployment"
 	"pushnpray/cmd/server/models"
+	pkgapi "pushnpray/pkg/api"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -43,7 +43,7 @@ func GetDeployment(c *gin.Context) {
 func DeployProject(c *gin.Context) {
 	project := c.MustGet("project").(models.Project)
 
-	var req DeployProjectRequest
+	var req pkgapi.DeployProjectRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -56,8 +56,8 @@ func DeployProject(c *gin.Context) {
 		strategy = &deployment.CommitStrategy{Commit: req.Commit}
 	} else if req.Branch != "" {
 		strategy = &deployment.BranchStrategy{Branch: req.Branch}
-	} else if req.Manifest == nil || !filepath.IsAbs(*req.Manifest) {
-		c.JSON(http.StatusBadRequest, gin.H{"error": ErrDeployMissingTarget})
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Unknown deployment strategy"})
 		return
 	}
 
@@ -73,12 +73,7 @@ func DeployProject(c *gin.Context) {
 		return
 	}
 
-	manifestPath := "pushnpray.toml"
-	if req.Manifest != nil {
-		manifestPath = *req.Manifest
-	}
-
-	go deployment.RunDeployment(dep, project, strategy, manifestPath)
+	go deployment.RunDeployment(dep, project, strategy)
 
 	c.JSON(http.StatusAccepted, gin.H{"id": deploymentId})
 }
