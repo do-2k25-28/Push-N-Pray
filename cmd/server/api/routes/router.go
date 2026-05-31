@@ -1,4 +1,4 @@
-package api
+package routes
 
 import (
 	"net/http"
@@ -28,38 +28,30 @@ func NewRouter() *gin.Engine {
 		c.String(http.StatusOK, "OK")
 	})
 
-	r.POST(RouteAuthRegisterV1, func(c *gin.Context) {
-		c.String(http.StatusOK, RouteAuthRegisterV1)
-	})
+	// Auth
+	r.POST(RouteAuthRegisterV1, Register)
+	r.POST(RouteAuthLoginV1, Login)
+	r.POST(RouteAuthTokenV1, Token)
 
-	r.POST(RouteAuthLoginV1, func(c *gin.Context) {
-		c.String(http.StatusOK, RouteAuthLoginV1)
-	})
-
-	r.POST(RouteAuthTokenV1, func(c *gin.Context) {
-		c.String(http.StatusOK, RouteAuthTokenV1)
-	})
-
+	// PAT
 	r.GET(RouteTokensV1, func(c *gin.Context) {
 		c.String(http.StatusOK, "GET "+RouteTokensV1)
 	})
-
 	r.POST(RouteTokensV1, func(c *gin.Context) {
 		c.String(http.StatusOK, "POST "+RouteTokensV1)
 	})
-
 	r.DELETE(RouteTokenDeleteV1, func(c *gin.Context) {
 		c.Status(http.StatusNoContent)
 	})
 
-	r.GET(RouteProjectsV1, ListProjects)
+	// Projects
 	r.POST(RouteProjectsV1, CreateProject)
-
+	r.GET(RouteProjectsV1, ListProjects)
 	r.GET(RouteProjectV1, GetProject)
 	r.DELETE(RouteProjectV1, DeleteProject)
 
+	// Deployments
 	r.POST(RouteProjectDeployV1, DeployProject)
-
 	r.GET(RouteProjectDeploymentsV1, ListDeployments)
 	r.GET(RouteProjectDeploymentV1, GetDeployment)
 

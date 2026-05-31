@@ -6,7 +6,7 @@ services:
       POSTGRES_DB: pushnpray
     volumes:
       - postgres:/var/lib/postgresql
-      - ./db-init:/docker-entrypoint-initdb.d
+      - ./infrastructure/database:/docker-entrypoint-initdb.d
     ports:
       - 5432:5432
 
