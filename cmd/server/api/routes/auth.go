@@ -113,5 +113,45 @@ func Login(c *gin.Context) {
 }
 
 func Token(c *gin.Context) {
+	var req pkgapi.TokenRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
+		return
+	}
+	if req.RefreshToken == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
+		return
+	}
 
+	var rt models.RefreshToken
+	if err := database.GetDB().Where("token = ?", req.RefreshToken).First(&rt).Error; err != nil {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid or expired refresh token"})
+		return
+	}
+
+	if err := database.GetDB().Delete(&rt).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	accessToken, err := utils.GetJWTHelper().GenerateToken(rt.Owner, 24*time.Hour)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	newRefreshToken := models.RefreshToken{
+		Owner: rt.Owner,
+		Token: uuid.NewString(),
+	}
+
+	if err := database.GetDB().Create(newRefreshToken).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		return
+	}
+
+	c.JSON(http.StatusOK, pkgapi.AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: newRefreshToken.Token,
+	})
 }
