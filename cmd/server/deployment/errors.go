@@ -19,9 +19,4 @@ const (
 	errFmtDockerfileNotFound = "dockerfile does not exist at path: %s"
 	errFmtAppDeployFailed    = "failed to deploy app %s"
 	errFmtAppRunFailed       = "failed to run app %s"
-
-	errFmtTraefikClient  = "failed to create docker client"
-	errFmtTraefikNetwork = "failed to create traefik network"
-	errFmtTraefikPull    = "failed to pull traefik image"
-	errFmtTraefikRun     = "failed to run traefik container"
 )
