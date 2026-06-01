@@ -7,8 +7,10 @@ services:
       - --providers.docker=true
       - --providers.docker.exposedbydefault=false
       - --providers.docker.network=traefik
+
       - --entrypoints.web.address=:80
       - --entrypoints.websecure.address=:443
+
       - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL:-admin@pushnpray.polydo.dev}
       - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
       - --certificatesresolvers.le.acme.httpchallenge=true
