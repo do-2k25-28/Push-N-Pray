@@ -19,7 +19,7 @@ import (
 const (
 	traefikName  = "pushnpray-traefik"
 	traefikNet   = "traefik"
-	traefikImage = "traefik:v3.6"
+	traefikImage = "traefik:v3.7"
 )
 
 func EnsureTraefik(ctx context.Context) error {
@@ -82,6 +82,7 @@ func ensureTraefikContainer(ctx context.Context, cli dockerSdk.SDKClient, acmePa
 			h.Binds = []string{"/var/run/docker.sock:/var/run/docker.sock:ro", acmePath + ":/acme.json"}
 		}),
 	)
+
 	if err != nil {
 		return fmt.Errorf("%s: %w", errFmtTraefikRun, err)
 	}
