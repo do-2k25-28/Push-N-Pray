@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"pushnpray/cmd/server/utils"
-	"pushnpray/internal"
+	"pushnpray/internal/docker"
 	"pushnpray/internal/manifest"
 )
 
@@ -16,7 +16,7 @@ func NewDeployService() *DeployService {
 
 func (s *DeployService) DeployProject(projectSlug string, projectID string, m *manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
-	dockerClient, err := internal.NewClient(ctx)
+	dockerClient, err := docker.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
@@ -38,6 +38,12 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 
 	for _, app := range m.Apps.Docker {
 		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
+
+		fmt.Printf("Pulling image %s\n", app.Image)
+		if err := dockerClient.PullImages(ctx, app.Image); err != nil {
+			return fmt.Errorf("unable to pull image %s, %w", app.Image, err)
+		}
+
 		fmt.Printf("Deploying Docker image app: %s\n", app.Name)
 		if err := dockerClient.RunContainer(ctx, containerName, app.Image); err != nil {
 			return fmt.Errorf(errFmtAppRunFailed+": %w", app.Name, err)

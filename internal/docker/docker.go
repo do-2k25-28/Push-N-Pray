@@ -1,12 +1,12 @@
 // Package dockerwrapper abstracts Docker operations for pulling images,
 // creating networks, and creating containers.
-package internal
+package docker
 
 import (
 	"context"
 	"errors"
 	"fmt"
-	"os/exec"
+	"os"
 	"path/filepath"
 	"sync"
 
@@ -17,6 +17,8 @@ import (
 	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 )
+
+var defaultDockerSocket = "/var/run/docker/sock"
 
 type Client struct {
 	docker dockerSdk.SDKClient
@@ -35,13 +37,24 @@ type ContainerConfig struct {
 }
 
 func NewClient(ctx context.Context) (*Client, error) {
-	client, err := dockerSdk.New(ctx)
+	dockerHost := os.Getenv("DOCKER_HOST")
+
+	if dockerHost == "" {
+		dockerHost = defaultDockerSocket
+	}
+
+	client, err := dockerSdk.New(ctx, dockerSdk.WithDockerHost(dockerHost))
 
 	if err != nil {
 		return nil, fmt.Errorf("dockerwrapper: create client: %w", err)
 	}
 
 	return &Client{docker: client}, nil
+}
+
+// We only support docker hub so no registry
+func registryCredentials(image string) (string, string, error) {
+	return "", "", nil
 }
 
 // PullImages pulls images concurrently. All pulls are attempted; errors are
@@ -57,7 +70,8 @@ func (c *Client) PullImages(ctx context.Context, images ...string) error {
 		wg.Add(1)
 		go func(img string) {
 			defer wg.Done()
-			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker)); err != nil {
+
+			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker), sdkimage.WithCredentialsFn(registryCredentials)); err != nil {
 				mu.Lock()
 				errs = append(errs, fmt.Errorf("pull %q: %w", img, err))
 				mu.Unlock()
@@ -241,10 +255,4 @@ func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) 
 		return fmt.Errorf("dockerwrapper: RemoveContainersByPattern: %w", errors.Join(errs...))
 	}
 	return nil
-}
-
-// CheckIfDockerInstalled returns true if the Docker CLI is available in the system PATH.
-func CheckIfDockerInstalled() bool {
-	_, err := exec.LookPath("docker")
-	return err == nil
 }
