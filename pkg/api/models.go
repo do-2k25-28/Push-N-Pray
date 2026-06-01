@@ -58,6 +58,15 @@ type CreateProjectResponse struct {
 	ID string `json:"id"`
 }
 
+// Project represents a project instance.
+type Project struct {
+	ID            string `json:"id"`
+	Slug          string `json:"slug"`
+	RepositoryURL string `json:"repositoryUrl"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+}
+
 // DeployProjectRequest selects a deploy target.
 type DeployProjectRequest struct {
 	Tag    string `json:"tag,omitempty"`

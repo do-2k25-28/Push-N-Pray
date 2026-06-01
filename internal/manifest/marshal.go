@@ -6,7 +6,13 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-func Marshal(manifest *Manifest) ([]byte, error) {
+var defaultServer = "https://pushnpray.polydo.dev"
+
+func Marshal(manifest Manifest) ([]byte, error) {
+	if manifest.Server == defaultServer {
+		manifest.Server = ""
+	}
+
 	return toml.Marshal(manifest)
 }
 
@@ -20,6 +26,10 @@ func Unmarshal(path string) (*Manifest, error) {
 	err = toml.Unmarshal(data, &manifest)
 	if err != nil {
 		return nil, err
+	}
+
+	if manifest.Server == "" {
+		manifest.Server = defaultServer
 	}
 
 	return &manifest, nil

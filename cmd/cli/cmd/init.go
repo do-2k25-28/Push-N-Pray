@@ -60,7 +60,7 @@ var initCmd = &cobra.Command{
 			RepositoryUrl: repositoryURL,
 		}
 
-		data, err := manifest.Marshal(&man)
+		data, err := manifest.Marshal(man)
 		if err != nil {
 			return err
 		}
