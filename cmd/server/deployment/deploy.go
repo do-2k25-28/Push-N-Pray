@@ -6,7 +6,6 @@ import (
 	"pushnpray/cmd/server/utils"
 	"pushnpray/internal"
 	"pushnpray/internal/manifest"
-	"strings"
 )
 
 type DeployService struct{}
@@ -22,10 +21,6 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 	dockerClient, err := internal.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
-	}
-
-	if _, err := dockerClient.CreateNetwork(ctx, traefikNet); err != nil && !strings.Contains(err.Error(), "already exists") {
-		return fmt.Errorf("failed to create traefik network: %w", err)
 	}
 
 	for _, app := range m.Apps.Dockerfile {
