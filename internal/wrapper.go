@@ -27,8 +27,10 @@ type ContainerConfig struct {
 	Image          string
 	Name           string
 	Network        *sdknetwork.Network
+	NetworkName    string
 	NetworkAliases []string
 	Env            map[string]string
+	Labels         map[string]string
 	Cmd            []string
 	// ExposedPorts format: "8080/tcp".
 	ExposedPorts []string
@@ -108,10 +110,16 @@ func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdk
 
 	if cfg.Network != nil {
 		opts = append(opts, sdkcontainer.WithNetwork(cfg.NetworkAliases, cfg.Network))
+	} else if cfg.NetworkName != "" {
+		opts = append(opts, sdkcontainer.WithNetworkName(cfg.NetworkAliases, cfg.NetworkName))
 	}
 
 	if len(cfg.Env) > 0 {
 		opts = append(opts, sdkcontainer.WithEnv(cfg.Env))
+	}
+
+	if len(cfg.Labels) > 0 {
+		opts = append(opts, sdkcontainer.WithLabels(cfg.Labels))
 	}
 
 	if len(cfg.Cmd) > 0 {
@@ -135,6 +143,7 @@ func (c *Client) RunContainerFromConfig(ctx context.Context, cfg ContainerConfig
 	if cfg.Image == "" {
 		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Image is required")
 	}
+
 	if cfg.Name == "" {
 		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Name is required")
 	}
@@ -147,13 +156,22 @@ func (c *Client) RunContainerFromConfig(ctx context.Context, cfg ContainerConfig
 
 	if cfg.Network != nil {
 		opts = append(opts, sdkcontainer.WithNetwork(cfg.NetworkAliases, cfg.Network))
+	} else if cfg.NetworkName != "" {
+		opts = append(opts, sdkcontainer.WithNetworkName(cfg.NetworkAliases, cfg.NetworkName))
 	}
+
 	if len(cfg.Env) > 0 {
 		opts = append(opts, sdkcontainer.WithEnv(cfg.Env))
 	}
+
+	if len(cfg.Labels) > 0 {
+		opts = append(opts, sdkcontainer.WithLabels(cfg.Labels))
+	}
+
 	if len(cfg.Cmd) > 0 {
 		opts = append(opts, sdkcontainer.WithCmd(cfg.Cmd...))
 	}
+
 	if len(cfg.ExposedPorts) > 0 {
 		opts = append(opts, sdkcontainer.WithExposedPorts(cfg.ExposedPorts...))
 	}
