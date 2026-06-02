@@ -87,3 +87,22 @@ type EnvVar struct {
 type SetProjectEnvRequest struct {
 	Variables []EnvVar `json:"variables"`
 }
+
+// ManagedService describes a service attached to a project.
+type ManagedService struct {
+	ID            string `json:"id"`
+	ProjectID     string `json:"projectId"`
+	Name          string `json:"name"`
+	Type          string `json:"type"`
+	Status        string `json:"status"`
+	ContainerName string `json:"containerName,omitempty"`
+	VolumeName    string `json:"volumeName,omitempty"`
+	Message       string `json:"message,omitempty"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+}
+
+// ListManagedServicesResponse wraps project managed services.
+type ListManagedServicesResponse struct {
+	Services []ManagedService `json:"services"`
+}

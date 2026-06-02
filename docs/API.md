@@ -351,3 +351,56 @@ Content-Type: application/json
 ```http
 HTTP/1.1 204 OK
 ```
+
+### List managed services
+
+List managed services attached to a project.
+
+```http
+GET /v1/projects/:projectId/services
+
+Authorization: Bearer <accessToken>
+```
+
+```http
+HTTP/1.1 200 OK
+
+Content-Type: application/json
+
+{
+  "services": [
+    {
+      "id": "86f7d497-45d5-4474-9b4d-61b70891e0e5",
+      "projectId": "p0ZoB1FwH6",
+      "name": "main-db",
+      "type": "postgres",
+      "status": "running",
+      "containerName": "postgres-main-db-p0ZoB1FwH6",
+      "volumeName": "postgres-main-db-p0ZoB1FwH6-data",
+      "createdAt": "2026-06-02T10:15:00Z",
+      "updatedAt": "2026-06-02T10:15:00Z"
+    }
+  ]
+}
+```
+
+| Status         | Description                                      |
+| -------------- | ------------------------------------------------ |
+| `provisioning` | Service creation is in progress.                 |
+| `running`      | Service is available.                            |
+| `error`        | Service provisioning or lifecycle action failed. |
+| `deleted`      | Service resources were explicitly deleted.       |
+
+### Delete managed service
+
+Delete a managed service explicitly. This stops and removes the service container and its dedicated volume when they are known by the control plane. Application deletion and redeployment do not call this route implicitly.
+
+```http
+DELETE /v1/projects/:projectId/services/:serviceId
+
+Authorization: Bearer <accessToken>
+```
+
+```http
+HTTP/1.1 204 No Content
+```
