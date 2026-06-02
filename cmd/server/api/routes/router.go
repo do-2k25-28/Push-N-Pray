@@ -60,5 +60,12 @@ func NewRouter() *gin.Engine {
 		c.Status(http.StatusNoContent)
 	})
 
+	// Managed services
+	services := router.Group("/v1/projects/:projectId/services")
+	services.Use(middleware.Auth(), middleware.ProjectOwnership())
+
+	services.GET("", ListServices)
+	services.DELETE("/:serviceId", DeleteService)
+
 	return router
 }

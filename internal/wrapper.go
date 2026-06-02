@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
+	"strings"
 	"sync"
 
 	dockerSdk "github.com/docker/go-sdk/client"
@@ -206,14 +207,30 @@ func (c *Client) listContainersByPattern(ctx context.Context, pattern string) ([
 	return result.Items, nil
 }
 
+func isExcludedContainer(ctr container.Summary, excluded map[string]struct{}) bool {
+	for _, name := range ctr.Names {
+		if _, ok := excluded[strings.TrimPrefix(name, "/")]; ok {
+			return true
+		}
+	}
+	return false
+}
+
 // StopContainersByPattern stops all running containers whose names match the given pattern.
 func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) error {
+	return c.StopContainersByPatternExcept(ctx, pattern, nil)
+}
+
+func (c *Client) StopContainersByPatternExcept(ctx context.Context, pattern string, excluded map[string]struct{}) error {
 	containers, err := c.listContainersByPattern(ctx, pattern)
 	if err != nil {
 		return err
 	}
 	var errs []error
 	for _, ctr := range containers {
+		if isExcludedContainer(ctr, excluded) {
+			continue
+		}
 		if _, err := c.docker.ContainerStop(ctx, ctr.ID, dockerclient.ContainerStopOptions{}); err != nil {
 			errs = append(errs, fmt.Errorf("stop %s: %w", ctr.ID, err))
 		}
@@ -226,18 +243,47 @@ func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) er
 
 // RemoveContainersByPattern removes all containers whose names match the given pattern.
 func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) error {
+	return c.RemoveContainersByPatternExcept(ctx, pattern, nil)
+}
+
+func (c *Client) RemoveContainersByPatternExcept(ctx context.Context, pattern string, excluded map[string]struct{}) error {
 	containers, err := c.listContainersByPattern(ctx, pattern)
 	if err != nil {
 		return err
 	}
 	var errs []error
 	for _, ctr := range containers {
+		if isExcludedContainer(ctr, excluded) {
+			continue
+		}
 		if _, err := c.docker.ContainerRemove(ctx, ctr.ID, dockerclient.ContainerRemoveOptions{Force: true}); err != nil {
 			errs = append(errs, fmt.Errorf("remove %s: %w", ctr.ID, err))
 		}
 	}
 	if len(errs) > 0 {
 		return fmt.Errorf("dockerwrapper: RemoveContainersByPattern: %w", errors.Join(errs...))
+	}
+	return nil
+}
+
+func (c *Client) RemoveManagedServiceResources(ctx context.Context, containerName, volumeName string) error {
+	var errs []error
+
+	if containerName != "" {
+		_, _ = c.docker.ContainerStop(ctx, containerName, dockerclient.ContainerStopOptions{})
+		if _, err := c.docker.ContainerRemove(ctx, containerName, dockerclient.ContainerRemoveOptions{Force: true}); err != nil {
+			errs = append(errs, fmt.Errorf("remove service container %s: %w", containerName, err))
+		}
+	}
+
+	if volumeName != "" {
+		if _, err := c.docker.VolumeRemove(ctx, volumeName, dockerclient.VolumeRemoveOptions{Force: true}); err != nil {
+			errs = append(errs, fmt.Errorf("remove service volume %s: %w", volumeName, err))
+		}
+	}
+
+	if len(errs) > 0 {
+		return fmt.Errorf("dockerwrapper: RemoveManagedServiceResources: %w", errors.Join(errs...))
 	}
 	return nil
 }

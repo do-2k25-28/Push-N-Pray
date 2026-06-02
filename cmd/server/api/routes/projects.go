@@ -71,17 +71,30 @@ func DeleteProject(c *gin.Context) {
 	project := c.MustGet("project").(models.Project)
 
 	pattern := fmt.Sprintf("%s-%s", project.Slug, project.ID)
+	excludedContainers := map[string]struct{}{}
+	var services []models.ManagedService
+	if err := database.GetDB().Where("project_id = ? AND status <> ?", project.ID, models.ServiceDeleted).Find(&services).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrServiceListFailed})
+		return
+	}
+	for _, service := range services {
+		if service.ContainerName != "" {
+			excludedContainers[service.ContainerName] = struct{}{}
+		}
+	}
+
 	dockerClient, err := internal.NewClient(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
 		return
 	}
-	if err := dockerClient.StopContainersByPattern(c.Request.Context(), pattern); err != nil {
+	if err := dockerClient.StopContainersByPatternExcept(c.Request.Context(), pattern, excludedContainers); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
 		return
 	}
-	if err := dockerClient.RemoveContainersByPattern(c.Request.Context(), pattern); err != nil {
+	if err := dockerClient.RemoveContainersByPatternExcept(c.Request.Context(), pattern, excludedContainers); err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		return
 	}
 
 	if err := database.GetDB().Delete(&project).Error; err != nil {
