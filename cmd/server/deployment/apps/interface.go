@@ -15,5 +15,18 @@ type DeployableApp interface {
 	// Container name and network is managed by the deploy function not this
 	// Env can be populated but the deploy engine will add managed services
 	// environment variables
-	ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig
+	ContainerConfig(ctx context.Context, manifest manifest.Manifest) (dockerw.ContainerConfig, error)
+}
+
+func healthcheckConfig(app manifest.App) (*dockerw.HealthConfig, error) {
+	if app.Healthcheck == nil {
+		return nil, nil
+	}
+
+	return dockerw.NewHTTPHealthcheck(
+		app.Healthcheck.Path,
+		app.Healthcheck.Port,
+		app.Healthcheck.Interval,
+		app.Healthcheck.Timeout,
+	)
 }

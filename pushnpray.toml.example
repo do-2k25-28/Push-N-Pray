@@ -5,6 +5,12 @@ project-id = 'fd2c7a27-8e47-46a0-bc01-622c12ac8c83'
 name = 'backend'
 image = 'ghcr.io/jdoe/project-backend:latest'
 
+[apps.docker.healthcheck]
+path = '/'
+port = 80
+interval = '2s'
+timeout = '30s'
+
 [[apps.docker]]
 name = 'frontend'
 image = 'ghcr.io/jdoe/project-frontend:latest'

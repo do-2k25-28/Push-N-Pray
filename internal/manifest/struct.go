@@ -1,7 +1,15 @@
 package manifest
 
 type App struct {
-	Name string `toml:"name"`
+	Name        string       `toml:"name"`
+	Healthcheck *Healthcheck `toml:"healthcheck,omitempty"`
+}
+
+type Healthcheck struct {
+	Path     string `toml:"path"`
+	Port     int    `toml:"port"`
+	Interval string `toml:"interval"`
+	Timeout  string `toml:"timeout"`
 }
 
 type DockerFileApp struct {

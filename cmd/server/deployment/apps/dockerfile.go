@@ -24,10 +24,16 @@ func (app DockerfileApp) Prepare(ctx context.Context, docker *dockerw.Client, ma
 	return docker.BuildImage(ctx, app.imageTag(manifest), app.Dockerfile, app.Context)
 }
 
-func (app DockerfileApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig {
-	return dockerw.ContainerConfig{
-		Image: app.imageTag(manifest),
+func (app DockerfileApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) (dockerw.ContainerConfig, error) {
+	healthcheck, err := healthcheckConfig(app.App)
+	if err != nil {
+		return dockerw.ContainerConfig{}, err
 	}
+
+	return dockerw.ContainerConfig{
+		Image:       app.imageTag(manifest),
+		Healthcheck: healthcheck,
+	}, nil
 }
 
 func NewDockerFileApp(manifest manifest.DockerFileApp, workspace string) DockerfileApp {

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os/exec"
+	"time"
 
 	"github.com/docker/go-sdk/container"
 	tcontainer "github.com/moby/moby/api/types/container"
@@ -16,6 +17,8 @@ type ContainerNetwork struct {
 	Aliases []string
 }
 
+type HealthConfig = tcontainer.HealthConfig
+
 type ContainerConfig struct {
 	Image    string
 	Name     string
@@ -23,6 +26,8 @@ type ContainerConfig struct {
 	Env      map[string]string
 	Labels   map[string]string
 	Cmd      []string
+	// Healthcheck uses Docker's native HEALTHCHECK support.
+	Healthcheck *tcontainer.HealthConfig
 	// ExposedPorts format: "8080/tcp".
 	ExposedPorts []string
 	VolumeBinds  []string
@@ -47,6 +52,12 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		opts = append(opts, container.WithCmd(cfg.Cmd...))
 	}
 
+	if cfg.Healthcheck != nil {
+		opts = append(opts, container.WithAdditionalConfigModifier(func(config *tcontainer.Config) {
+			config.Healthcheck = cfg.Healthcheck
+		}))
+	}
+
 	if len(cfg.ExposedPorts) > 0 {
 		opts = append(opts, container.WithExposedPorts(cfg.ExposedPorts...))
 	}
@@ -68,6 +79,24 @@ func (c *Client) ExecInContainer(ctx context.Context, containerName string, cmd 
 		return fmt.Errorf("exec in %s: %w: %s", containerName, err, out)
 	}
 	return nil
+}
+
+func NewHTTPHealthcheck(path string, port int, interval string, timeout string) (*tcontainer.HealthConfig, error) {
+	parsedInterval, err := time.ParseDuration(interval)
+	if err != nil {
+		return nil, fmt.Errorf("parse healthcheck interval: %w", err)
+	}
+
+	parsedTimeout, err := time.ParseDuration(timeout)
+	if err != nil {
+		return nil, fmt.Errorf("parse healthcheck timeout: %w", err)
+	}
+
+	return &tcontainer.HealthConfig{
+		Test:     []string{"CMD-SHELL", fmt.Sprintf("wget --no-verbose --tries=1 --spider http://127.0.0.1:%d%s || curl --fail --silent http://127.0.0.1:%d%s >/dev/null", port, path, port, path)},
+		Interval: parsedInterval,
+		Timeout:  parsedTimeout,
+	}, nil
 }
 
 func (c *Client) RunContainerFromConfig(ctx context.Context, config ContainerConfig) error {

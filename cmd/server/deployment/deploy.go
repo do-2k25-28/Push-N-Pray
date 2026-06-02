@@ -98,7 +98,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 			return err
 		}
 
-		config := app.ContainerConfig(ctx, manifest)
+		config, err := app.ContainerConfig(ctx, manifest)
+		if err != nil {
+			return err
+		}
 
 		config.Env = utils.MergeMap(
 			config.Env,
