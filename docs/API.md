@@ -232,7 +232,7 @@ Trigger a deployment, optionally on given tag/commit.
 The API responds with a deployment identifier.
 
 ```http
-POST /v1/projects/:projectId/deploy
+POST /v1/projects/:projectId/deployments
 
 Authorization: Bearer <accessToken>
 Content-Type: application/json
@@ -245,7 +245,7 @@ Content-Type: application/json
 or
 
 ```http
-POST /v1/projects/:projectId/deploy
+POST /v1/projects/:projectId/deployments
 
 Authorization: Bearer <accessToken>
 Content-Type: application/json
@@ -258,7 +258,7 @@ Content-Type: application/json
 or
 
 ```http
-POST /v1/projects/:projectId/deploy
+POST /v1/projects/:projectId/deployments
 
 Authorization: Bearer <accessToken>
 Content-Type: application/json

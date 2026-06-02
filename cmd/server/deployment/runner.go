@@ -10,7 +10,7 @@ import (
 	"pushnpray/internal/manifest"
 )
 
-func RunDeployment(dep models.Deployment, project models.Project, strategy GitFetchStrategy, manifestFile string) {
+func RunDeployment(dep models.Deployment, project models.Project, strategy GitFetchStrategy) {
 	reportStatus := func(status models.DeploymentStatus, message string) {
 		log.Printf("[%s] [%s] %s", project.ID, status, message)
 
@@ -24,33 +24,27 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		}
 	}
 
-	var manifestPath string
-	var workspaceDir string
+	workspaceDir := filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
+	manifestPath := filepath.Join(workspaceDir, "pushnpray.toml")
 
-	if filepath.IsAbs(manifestFile) {
-		manifestPath = manifestFile
-		workspaceDir = filepath.Dir(manifestFile)
-	} else {
-		workspaceDir = filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
-		if err := os.MkdirAll(workspaceDir, 0755); err != nil {
-			reportStatus(models.InProgress, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err))
-			return
-		}
-		defer func() {
-			var _ = os.RemoveAll(workspaceDir)
-		}()
+	workspaceDir = filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
+	if err := os.MkdirAll(workspaceDir, 0755); err != nil {
+		reportStatus(models.InProgress, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err))
+		return
+	}
+	defer func() {
+		var _ = os.RemoveAll(workspaceDir)
+	}()
 
-		reportStatus(models.InProgress, fmt.Sprintf("Fetching repository %s using strategy %s", project.RepositoryUrl, strategy.DisplayName()))
-		if err := strategy.Fetch(project.RepositoryUrl, workspaceDir); err != nil {
-			reportStatus(models.Error, fmt.Sprintf("%s: %v", msgFetchFailed, err))
-			return
-		}
-		manifestPath = filepath.Join(workspaceDir, manifestFile)
+	reportStatus(models.InProgress, fmt.Sprintf("Fetching repository %s using strategy %s", project.RepositoryUrl, strategy.DisplayName()))
+	if err := strategy.Fetch(project.RepositoryUrl, workspaceDir); err != nil {
+		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgFetchFailed, err))
+		return
 	}
 
-	reportStatus(models.InProgress, fmt.Sprintf("Reading manifest file at %s", manifestFile))
+	reportStatus(models.InProgress, "Reading manifest file")
 	if _, err := os.Stat(manifestPath); os.IsNotExist(err) {
-		reportStatus(models.Error, fmt.Sprintf(msgManifestMissing, manifestFile))
+		reportStatus(models.Error, fmt.Sprint(msgManifestMissing))
 		return
 	}
 

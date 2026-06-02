@@ -4,7 +4,7 @@ import (
 	"log"
 	"os"
 
-	"pushnpray/cmd/server/api"
+	"pushnpray/cmd/server/api/routes"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/utils"
 	"pushnpray/internal"
@@ -18,7 +18,7 @@ func main() {
 
 	database.InitDB()
 
-	router := api.NewRouter()
+	router := routes.NewRouter()
 
 	var serverPort = os.Getenv("HTTP_PORT")
 	if serverPort == "" {
