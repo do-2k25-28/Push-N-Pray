@@ -97,7 +97,6 @@ type ManagedService struct {
 	Status        string `json:"status"`
 	ContainerName string `json:"containerName,omitempty"`
 	VolumeName    string `json:"volumeName,omitempty"`
-	Message       string `json:"message,omitempty"`
 	CreatedAt     string `json:"createdAt"`
 	UpdatedAt     string `json:"updatedAt"`
 }

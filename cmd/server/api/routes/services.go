@@ -37,11 +37,6 @@ func DeleteService(c *gin.Context) {
 		return
 	}
 
-	if service.Status == models.ServiceDeleted {
-		c.Status(http.StatusNoContent)
-		return
-	}
-
 	dockerClient, err := internal.NewClient(c.Request.Context())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrServiceDeleteFailed})
@@ -54,7 +49,6 @@ func DeleteService(c *gin.Context) {
 	}
 
 	service.Status = models.ServiceDeleted
-	service.Message = "Service deleted"
 	if err := database.GetDB().Save(&service).Error; err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrServiceDeleteFailed})
 		return

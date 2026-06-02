@@ -78,9 +78,7 @@ func DeleteProject(c *gin.Context) {
 		return
 	}
 	for _, service := range services {
-		if service.ContainerName != "" {
-			excludedContainers[service.ContainerName] = struct{}{}
-		}
+		excludedContainers[service.ContainerName] = struct{}{}
 	}
 
 	dockerClient, err := internal.NewClient(c.Request.Context())
