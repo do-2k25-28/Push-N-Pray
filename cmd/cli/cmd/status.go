@@ -2,8 +2,8 @@ package cmd
 
 import (
 	"fmt"
+	"pushnpray/cmd/cli/prerun"
 	"pushnpray/internal/manifest"
-	"pushnpray/internal/session"
 	"pushnpray/pkg/api"
 
 	"github.com/spf13/cobra"
@@ -14,33 +14,10 @@ var statusCmd = &cobra.Command{
 	Short:        "Show project status",
 	Long:         "Show information about the current project and the most recent deployments.",
 	SilenceUsage: true,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		if err := session.VerifyAuth(); err != nil {
-			return err
-		}
-
-		return nil
-	},
+	PreRunE:      prerun.Combine(prerun.Auth, prerun.Manifest),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		manifestPath, err := cmd.Root().Flags().GetString("file")
-		if err != nil {
-			manifestPath = "pushnpray.toml"
-		}
-
-		man, err := manifest.Unmarshal(manifestPath)
-		if err != nil {
-			return err
-		}
-
-		auth, err := session.GetAuthClientOption(man.Server)
-		if err != nil {
-			return err
-		}
-
-		client, err := api.NewClient(man.Server, auth)
-		if err != nil {
-			return err
-		}
+		man := cmd.Context().Value(prerun.ManifestContextKey).(*manifest.Manifest)
+		client := cmd.Context().Value(prerun.ApiContextKey).(*api.Client)
 
 		project, err := client.GetProject(cmd.Context(), man.ProjectId)
 		if err != nil {
