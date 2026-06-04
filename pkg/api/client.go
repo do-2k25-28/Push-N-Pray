@@ -235,6 +235,21 @@ func (c *Client) DeploymentInfo(ctx context.Context, projectID, deploymentID str
 	return &resp, nil
 }
 
+func (c *Client) ListDeployments(ctx context.Context, projectID string) (*ListDeploymentsResponse, error) {
+	path := fmt.Sprintf("projects/%s/deployments", url.PathEscape(projectID))
+	req, err := c.newRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp ListDeploymentsResponse
+	if err := c.do(req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 func (c *Client) SetProjectEnv(ctx context.Context, projectID string, payload SetProjectEnvRequest) error {
 	path := fmt.Sprintf("projects/%s/env", url.PathEscape(projectID))
 	req, err := c.newRequest(ctx, http.MethodPost, path, payload)

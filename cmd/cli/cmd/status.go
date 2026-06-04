@@ -28,6 +28,21 @@ var statusCmd = &cobra.Command{
 		fmt.Printf("Created At: %s\n", project.CreatedAt)
 		fmt.Printf("Updated At: %s\n", project.UpdatedAt)
 
+		deployments, err := client.ListDeployments(cmd.Context(), project.ID)
+		if err != nil {
+			return err
+		}
+
+		fmt.Println("\nRecent Deployments:")
+		count := 0
+		for _, dep := range deployments.Deployments {
+			if count >= 5 {
+				break
+			}
+			fmt.Printf("- %s | Status: %s | Date: %s\n", dep.ID, dep.Status, dep.CreatedAt)
+			count++
+		}
+
 		return nil
 	},
 }

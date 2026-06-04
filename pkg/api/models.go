@@ -86,6 +86,20 @@ type DeploymentInfoResponse struct {
 	Message string `json:"message,omitempty"`
 }
 
+// Deployment represents a deployment in the system.
+type Deployment struct {
+	ID        string `json:"id"`
+	ProjectID string `json:"projectId"`
+	Status    string `json:"status"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// ListDeploymentsResponse provides a list of deployments.
+type ListDeploymentsResponse struct {
+	Deployments []Deployment `json:"deployments"`
+}
+
 // EnvVar represents a project environment variable.
 type EnvVar struct {
 	Name  string `json:"name"`

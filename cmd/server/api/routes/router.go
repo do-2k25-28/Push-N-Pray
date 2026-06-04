@@ -45,7 +45,7 @@ func NewRouter() *gin.Engine {
 	projects.DELETE("/:projectId", DeleteProject)
 
 	// Deployments
-	deployments := router.Group("/v1/deployments")
+	deployments := router.Group("/v1/projects/:projectId/deployments")
 	deployments.Use(middleware.Auth(), middleware.ProjectOwnership())
 
 	deployments.POST("", DeployProject)
