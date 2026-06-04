@@ -2,6 +2,7 @@ package deployment
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"pushnpray/cmd/server/deployment/docker"
 	"pushnpray/internal"
@@ -31,11 +32,16 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 		apps = append(apps, docker.NewImageApp(app, projectSlug, projectID))
 	}
 
+	return runApps(ctx, dockerClient, apps)
+}
+
+func runApps(ctx context.Context, client docker.Client, apps []docker.DeployableApp) error {
+	var deployErrors []error
 	for _, app := range apps {
-		if err := app.RunContainer(ctx, dockerClient); err != nil {
-			return err
+		if err := app.RunContainer(ctx, client); err != nil {
+			deployErrors = append(deployErrors, err)
 		}
 	}
 
-	return nil
+	return errors.Join(deployErrors...)
 }

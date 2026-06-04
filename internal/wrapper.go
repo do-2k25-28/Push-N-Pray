@@ -22,16 +22,19 @@ type Client struct {
 	docker dockerSdk.SDKClient
 }
 
+type ContainerNetwork struct {
+	Name    string
+	Aliases []string
+}
+
 // ContainerConfig holds the parameters for creating a container.
 type ContainerConfig struct {
-	Image          string
-	Name           string
-	Network        *sdknetwork.Network
-	NetworkName    string
-	NetworkAliases []string
-	Env            map[string]string
-	Labels         map[string]string
-	Cmd            []string
+	Image    string
+	Name     string
+	Networks []ContainerNetwork
+	Env      map[string]string
+	Labels   map[string]string
+	Cmd      []string
 	// ExposedPorts format: "8080/tcp".
 	ExposedPorts []string
 }
@@ -91,27 +94,42 @@ func (c *Client) CreateNetwork(ctx context.Context, name string) (*sdknetwork.Ne
 
 var ErrDockerStopRemoveFailed = errors.New("failed to stop and remove the container")
 
-// CreateContainer creates a container without starting it.
-func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdkcontainer.Container, error) {
+func validateContainerConfig(operation string, cfg ContainerConfig) error {
 	if cfg.Image == "" {
-		return nil, fmt.Errorf("dockerwrapper: CreateContainer: Image is required")
+		return fmt.Errorf("dockerwrapper: %s: Image is required", operation)
 	}
 
 	if cfg.Name == "" {
-		return nil, fmt.Errorf("dockerwrapper: CreateContainer: Name is required")
+		return fmt.Errorf("dockerwrapper: %s: Name is required", operation)
 	}
 
+	networkNames := make(map[string]struct{}, len(cfg.Networks))
+	for _, network := range cfg.Networks {
+		if network.Name == "" {
+			return fmt.Errorf("dockerwrapper: %s: Network name is required", operation)
+		}
+		if _, exists := networkNames[network.Name]; exists {
+			return fmt.Errorf("dockerwrapper: %s: Network %q is duplicated", operation, network.Name)
+		}
+		networkNames[network.Name] = struct{}{}
+	}
+
+	return nil
+}
+
+func (c *Client) containerOptions(cfg ContainerConfig, start bool) []sdkcontainer.ContainerCustomizer {
 	opts := []sdkcontainer.ContainerCustomizer{
 		sdkcontainer.WithClient(c.docker),
 		sdkcontainer.WithImage(cfg.Image),
 		sdkcontainer.WithName(cfg.Name),
-		sdkcontainer.WithNoStart(),
 	}
 
-	if cfg.Network != nil {
-		opts = append(opts, sdkcontainer.WithNetwork(cfg.NetworkAliases, cfg.Network))
-	} else if cfg.NetworkName != "" {
-		opts = append(opts, sdkcontainer.WithNetworkName(cfg.NetworkAliases, cfg.NetworkName))
+	if !start {
+		opts = append(opts, sdkcontainer.WithNoStart())
+	}
+
+	for _, network := range cfg.Networks {
+		opts = append(opts, sdkcontainer.WithNetworkName(network.Aliases, network.Name))
 	}
 
 	if len(cfg.Env) > 0 {
@@ -130,7 +148,16 @@ func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdk
 		opts = append(opts, sdkcontainer.WithExposedPorts(cfg.ExposedPorts...))
 	}
 
-	ctr, err := sdkcontainer.Run(ctx, opts...)
+	return opts
+}
+
+// CreateContainer creates a container without starting it.
+func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdkcontainer.Container, error) {
+	if err := validateContainerConfig("CreateContainer", cfg); err != nil {
+		return nil, err
+	}
+
+	ctr, err := sdkcontainer.Run(ctx, c.containerOptions(cfg, false)...)
 	if err != nil {
 		return nil, fmt.Errorf("dockerwrapper: CreateContainer %q: %w", cfg.Name, err)
 	}
@@ -140,44 +167,12 @@ func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdk
 
 // RunContainerFromConfig creates and starts a container using a full ContainerConfig.
 func (c *Client) RunContainerFromConfig(ctx context.Context, cfg ContainerConfig) error {
-	if cfg.Image == "" {
-		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Image is required")
-	}
-
-	if cfg.Name == "" {
-		return fmt.Errorf("dockerwrapper: RunContainerFromConfig: Name is required")
-	}
-
-	opts := []sdkcontainer.ContainerCustomizer{
-		sdkcontainer.WithClient(c.docker),
-		sdkcontainer.WithImage(cfg.Image),
-		sdkcontainer.WithName(cfg.Name),
-	}
-
-	if cfg.Network != nil {
-		opts = append(opts, sdkcontainer.WithNetwork(cfg.NetworkAliases, cfg.Network))
-	} else if cfg.NetworkName != "" {
-		opts = append(opts, sdkcontainer.WithNetworkName(cfg.NetworkAliases, cfg.NetworkName))
-	}
-
-	if len(cfg.Env) > 0 {
-		opts = append(opts, sdkcontainer.WithEnv(cfg.Env))
-	}
-
-	if len(cfg.Labels) > 0 {
-		opts = append(opts, sdkcontainer.WithLabels(cfg.Labels))
-	}
-
-	if len(cfg.Cmd) > 0 {
-		opts = append(opts, sdkcontainer.WithCmd(cfg.Cmd...))
-	}
-
-	if len(cfg.ExposedPorts) > 0 {
-		opts = append(opts, sdkcontainer.WithExposedPorts(cfg.ExposedPorts...))
+	if err := validateContainerConfig("RunContainerFromConfig", cfg); err != nil {
+		return err
 	}
 
 	fmt.Printf("Running docker container %s from image %s...\n", cfg.Name, cfg.Image)
-	if _, err := sdkcontainer.Run(ctx, opts...); err != nil {
+	if _, err := sdkcontainer.Run(ctx, c.containerOptions(cfg, true)...); err != nil {
 		return fmt.Errorf("dockerwrapper: RunContainerFromConfig %q: %w", cfg.Name, err)
 	}
 	return nil
@@ -196,20 +191,6 @@ func (c *Client) BuildImage(ctx context.Context, tag, dockerfilePath, contextDir
 	fmt.Printf("Building docker image %s from %s...\n", tag, dockerfilePath)
 	if _, err := sdkimage.BuildFromDir(ctx, contextDir, relDockerfile, tag, sdkimage.WithBuildClient(c.docker)); err != nil {
 		return fmt.Errorf("dockerwrapper: BuildImage %q: %w", tag, err)
-	}
-	return nil
-}
-
-// RunContainer creates and starts a container with the given name from the given image.
-func (c *Client) RunContainer(ctx context.Context, containerName, imageName string) error {
-	fmt.Printf("Running docker container %s from image %s...\n", containerName, imageName)
-	_, err := sdkcontainer.Run(ctx,
-		sdkcontainer.WithClient(c.docker),
-		sdkcontainer.WithName(containerName),
-		sdkcontainer.WithImage(imageName),
-	)
-	if err != nil {
-		return fmt.Errorf("dockerwrapper: RunContainer %q: %w", containerName, err)
 	}
 	return nil
 }

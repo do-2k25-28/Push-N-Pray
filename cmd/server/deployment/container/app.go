@@ -37,10 +37,12 @@ func (app App) ContainerName() string {
 
 func (app App) config() internal.ContainerConfig {
 	return internal.ContainerConfig{
-		Image:       app.imageName,
-		Name:        app.containerName,
-		NetworkName: traefikNet,
-		Labels:      app.labels,
+		Image: app.imageName,
+		Name:  app.containerName,
+		Networks: []internal.ContainerNetwork{
+			{Name: traefikNet},
+		},
+		Labels: app.labels,
 	}
 }
 
