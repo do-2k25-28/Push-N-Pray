@@ -2,8 +2,9 @@ package deployment
 
 import (
 	"context"
+	"errors"
 	"fmt"
-	"pushnpray/cmd/server/utils"
+	"pushnpray/cmd/server/deployment/docker"
 	"pushnpray/internal"
 	"pushnpray/internal/manifest"
 )
@@ -21,27 +22,26 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
 
-	for _, app := range m.Apps.Dockerfile {
-		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
-		imageName := fmt.Sprintf("%s-image", containerName)
-		dockerfilePath := utils.ResolvePath(workspaceDir, app.Dockerfile)
-		contextPath := utils.ResolvePath(workspaceDir, app.Context)
-		fmt.Printf("Deploying Dockerfile app: %s\n", app.Name)
+	apps := make([]docker.DeployableApp, 0, len(m.Apps.Dockerfile)+len(m.Apps.Docker))
 
-		if err := dockerClient.BuildImage(ctx, imageName, dockerfilePath, contextPath); err != nil {
-			return fmt.Errorf(errFmtAppDeployFailed+": %w", app.Name, err)
-		}
-		if err := dockerClient.RunContainer(ctx, containerName, imageName); err != nil {
-			return fmt.Errorf(errFmtAppRunFailed+": %w", app.Name, err)
-		}
+	for _, app := range m.Apps.Dockerfile {
+		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectID, workspaceDir))
 	}
 
 	for _, app := range m.Apps.Docker {
-		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
-		fmt.Printf("Deploying Docker image app: %s\n", app.Name)
-		if err := dockerClient.RunContainer(ctx, containerName, app.Image); err != nil {
-			return fmt.Errorf(errFmtAppRunFailed+": %w", app.Name, err)
+		apps = append(apps, docker.NewImageApp(app, projectSlug, projectID))
+	}
+
+	return runApps(ctx, dockerClient, apps)
+}
+
+func runApps(ctx context.Context, client docker.Client, apps []docker.DeployableApp) error {
+	var deployErrors []error
+	for _, app := range apps {
+		if err := app.RunContainer(ctx, client); err != nil {
+			deployErrors = append(deployErrors, err)
 		}
 	}
-	return nil
+
+	return errors.Join(deployErrors...)
 }
