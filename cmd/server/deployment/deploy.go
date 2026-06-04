@@ -4,41 +4,49 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"pushnpray/cmd/server/deployment/container"
 	"pushnpray/cmd/server/deployment/docker"
+	"pushnpray/cmd/server/deployment/service"
 	"pushnpray/internal"
 	"pushnpray/internal/manifest"
 )
 
-type DeployService struct{}
-
-func NewDeployService() *DeployService {
-	return &DeployService{}
-}
-
-func (s *DeployService) DeployProject(projectSlug string, projectID string, m *manifest.Manifest, workspaceDir string) error {
+func DeployProject(projectSlug string, projectId string, projectManifest *manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
 	dockerClient, err := internal.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
 
-	apps := make([]docker.DeployableApp, 0, len(m.Apps.Dockerfile)+len(m.Apps.Docker))
-
-	for _, app := range m.Apps.Dockerfile {
-		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectID, workspaceDir))
+	if err := dockerClient.EnsureNetwork(ctx, container.ProjectNetworkName(projectId)); err != nil {
+		return fmt.Errorf("failed to create project network: %w", err)
 	}
 
-	for _, app := range m.Apps.Docker {
-		apps = append(apps, docker.NewImageApp(app, projectSlug, projectID))
+	serviceDefinitions, err := service.ServiceDefinitionsFromManifest(projectManifest)
+	if err != nil {
+		return fmt.Errorf("invalid services configuration: %w", err)
+	}
+	if err := service.UpdateServices(ctx, dockerClient, projectId, serviceDefinitions); err != nil {
+		return fmt.Errorf("failed to update services: %w", err)
+	}
+
+	apps := make([]docker.DeployableApp, 0, len(projectManifest.Apps.Dockerfile)+len(projectManifest.Apps.Docker))
+
+	for _, app := range projectManifest.Apps.Dockerfile {
+		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectId, workspaceDir))
+	}
+
+	for _, app := range projectManifest.Apps.Docker {
+		apps = append(apps, docker.NewImageApp(app, projectSlug, projectId))
 	}
 
 	return runApps(ctx, dockerClient, apps)
 }
 
-func runApps(ctx context.Context, client docker.Client, apps []docker.DeployableApp) error {
+func runApps(ctx context.Context, dockerClient *internal.Client, apps []docker.DeployableApp) error {
 	var deployErrors []error
 	for _, app := range apps {
-		if err := app.RunContainer(ctx, client); err != nil {
+		if err := app.RunContainer(ctx, dockerClient); err != nil {
 			deployErrors = append(deployErrors, err)
 		}
 	}

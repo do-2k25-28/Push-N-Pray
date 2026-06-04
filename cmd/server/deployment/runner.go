@@ -27,13 +27,14 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 	workspaceDir := filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
 	manifestPath := filepath.Join(workspaceDir, manifest.DefaultManifestName)
 
-	workspaceDir = filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
 	if err := os.MkdirAll(workspaceDir, 0755); err != nil {
 		reportStatus(models.InProgress, fmt.Sprintf("%s: %v", msgWorkspaceFailed, err))
 		return
 	}
 	defer func() {
-		var _ = os.RemoveAll(workspaceDir)
+		if err := os.RemoveAll(workspaceDir); err != nil {
+			log.Printf("failed to remove workspace %s: %v", workspaceDir, err)
+		}
 	}()
 
 	reportStatus(models.InProgress, fmt.Sprintf("Fetching repository %s using strategy %s", project.RepositoryUrl, strategy.DisplayName()))
@@ -54,9 +55,9 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		return
 	}
 
-	reportStatus(models.InProgress, fmt.Sprintf("Deploying %d container(s)", len(projectConfig.Apps.Docker)+len(projectConfig.Apps.Dockerfile)))
-	deployService := NewDeployService()
-	if err := deployService.DeployProject(project.Slug, project.ID, projectConfig, workspaceDir); err != nil {
+	serviceCount := len(projectConfig.Services.Postgres) + len(projectConfig.Services.Redis) + len(projectConfig.Services.S3)
+	reportStatus(models.InProgress, fmt.Sprintf("Updating %d service(s), then deploying %d app(s)", serviceCount, len(projectConfig.Apps.Docker)+len(projectConfig.Apps.Dockerfile)))
+	if err := DeployProject(project.Slug, project.ID, projectConfig, workspaceDir); err != nil {
 		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgDeployFailed, err))
 		return
 	}

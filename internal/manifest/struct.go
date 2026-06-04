@@ -16,17 +16,17 @@ type DockerApp struct {
 }
 
 type Service struct {
-	Name string
+	Id string `toml:"id"`
 }
 
 type PostgresService struct {
 	Service
-	Version string
+	Version string `toml:"version"`
 }
 
 type RedisService struct {
 	Service
-	Version string
+	Version string `toml:"version"`
 }
 
 type S3Service struct {

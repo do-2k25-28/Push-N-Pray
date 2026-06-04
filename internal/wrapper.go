@@ -1,5 +1,3 @@
-// Package dockerwrapper abstracts Docker operations for pulling images,
-// creating networks, and creating containers.
 package internal
 
 import (
@@ -8,35 +6,15 @@ import (
 	"fmt"
 	"os/exec"
 	"path/filepath"
-	"sync"
 
 	dockerSdk "github.com/docker/go-sdk/client"
-	sdkcontainer "github.com/docker/go-sdk/container"
 	sdkimage "github.com/docker/go-sdk/image"
-	sdknetwork "github.com/docker/go-sdk/network"
 	"github.com/moby/moby/api/types/container"
 	dockerclient "github.com/moby/moby/client"
 )
 
 type Client struct {
 	docker dockerSdk.SDKClient
-}
-
-type ContainerNetwork struct {
-	Name    string
-	Aliases []string
-}
-
-// ContainerConfig holds the parameters for creating a container.
-type ContainerConfig struct {
-	Image    string
-	Name     string
-	Networks []ContainerNetwork
-	Env      map[string]string
-	Labels   map[string]string
-	Cmd      []string
-	// ExposedPorts format: "8080/tcp".
-	ExposedPorts []string
 }
 
 func NewClient(ctx context.Context) (*Client, error) {
@@ -49,134 +27,7 @@ func NewClient(ctx context.Context) (*Client, error) {
 	return &Client{docker: client}, nil
 }
 
-// PullImages pulls images concurrently. All pulls are attempted; errors are
-// collected and returned as a single joined error.
-func (c *Client) PullImages(ctx context.Context, images ...string) error {
-	var (
-		wg   sync.WaitGroup
-		mu   sync.Mutex
-		errs []error
-	)
-
-	for _, image := range images {
-		wg.Add(1)
-		go func(img string) {
-			defer wg.Done()
-			if err := sdkimage.Pull(ctx, img, sdkimage.WithPullClient(c.docker)); err != nil {
-				mu.Lock()
-				errs = append(errs, fmt.Errorf("pull %q: %w", img, err))
-				mu.Unlock()
-			}
-		}(image)
-	}
-
-	wg.Wait()
-
-	if len(errs) > 0 {
-		return fmt.Errorf("dockerwrapper: PullImages: %w", errors.Join(errs...))
-	}
-
-	return nil
-}
-
-func (c *Client) CreateNetwork(ctx context.Context, name string) (*sdknetwork.Network, error) {
-	nw, err := sdknetwork.New(ctx,
-		sdknetwork.WithName(name),
-		sdknetwork.WithClient(c.docker),
-	)
-
-	if err != nil {
-		return nil, fmt.Errorf("dockerwrapper: CreateNetwork %q: %w", name, err)
-	}
-
-	return nw, nil
-}
-
 var ErrDockerStopRemoveFailed = errors.New("failed to stop and remove the container")
-
-func validateContainerConfig(operation string, cfg ContainerConfig) error {
-	if cfg.Image == "" {
-		return fmt.Errorf("dockerwrapper: %s: Image is required", operation)
-	}
-
-	if cfg.Name == "" {
-		return fmt.Errorf("dockerwrapper: %s: Name is required", operation)
-	}
-
-	networkNames := make(map[string]struct{}, len(cfg.Networks))
-	for _, network := range cfg.Networks {
-		if network.Name == "" {
-			return fmt.Errorf("dockerwrapper: %s: Network name is required", operation)
-		}
-		if _, exists := networkNames[network.Name]; exists {
-			return fmt.Errorf("dockerwrapper: %s: Network %q is duplicated", operation, network.Name)
-		}
-		networkNames[network.Name] = struct{}{}
-	}
-
-	return nil
-}
-
-func (c *Client) containerOptions(cfg ContainerConfig, start bool) []sdkcontainer.ContainerCustomizer {
-	opts := []sdkcontainer.ContainerCustomizer{
-		sdkcontainer.WithClient(c.docker),
-		sdkcontainer.WithImage(cfg.Image),
-		sdkcontainer.WithName(cfg.Name),
-	}
-
-	if !start {
-		opts = append(opts, sdkcontainer.WithNoStart())
-	}
-
-	for _, network := range cfg.Networks {
-		opts = append(opts, sdkcontainer.WithNetworkName(network.Aliases, network.Name))
-	}
-
-	if len(cfg.Env) > 0 {
-		opts = append(opts, sdkcontainer.WithEnv(cfg.Env))
-	}
-
-	if len(cfg.Labels) > 0 {
-		opts = append(opts, sdkcontainer.WithLabels(cfg.Labels))
-	}
-
-	if len(cfg.Cmd) > 0 {
-		opts = append(opts, sdkcontainer.WithCmd(cfg.Cmd...))
-	}
-
-	if len(cfg.ExposedPorts) > 0 {
-		opts = append(opts, sdkcontainer.WithExposedPorts(cfg.ExposedPorts...))
-	}
-
-	return opts
-}
-
-// CreateContainer creates a container without starting it.
-func (c *Client) CreateContainer(ctx context.Context, cfg ContainerConfig) (*sdkcontainer.Container, error) {
-	if err := validateContainerConfig("CreateContainer", cfg); err != nil {
-		return nil, err
-	}
-
-	ctr, err := sdkcontainer.Run(ctx, c.containerOptions(cfg, false)...)
-	if err != nil {
-		return nil, fmt.Errorf("dockerwrapper: CreateContainer %q: %w", cfg.Name, err)
-	}
-
-	return ctr, nil
-}
-
-// RunContainerFromConfig creates and starts a container using a full ContainerConfig.
-func (c *Client) RunContainerFromConfig(ctx context.Context, cfg ContainerConfig) error {
-	if err := validateContainerConfig("RunContainerFromConfig", cfg); err != nil {
-		return err
-	}
-
-	fmt.Printf("Running docker container %s from image %s...\n", cfg.Name, cfg.Image)
-	if _, err := sdkcontainer.Run(ctx, c.containerOptions(cfg, true)...); err != nil {
-		return fmt.Errorf("dockerwrapper: RunContainerFromConfig %q: %w", cfg.Name, err)
-	}
-	return nil
-}
 
 // BuildImage builds a Docker image with the given tag from the given Dockerfile and context directory.
 // dockerfilePath may be absolute; it is resolved relative to contextDir for the SDK.
