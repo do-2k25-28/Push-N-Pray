@@ -13,7 +13,7 @@ const ManifestContextKey manifestCtxKeyType = 0
 
 func Manifest() CobraPreRun {
 	return func(cmd *cobra.Command, args []string) error {
-		man, err := manifest.Unmarshal("pushnpray.toml")
+		man, err := manifest.Unmarshal(manifest.DefaultManifestName)
 		if err != nil {
 			return err
 		}

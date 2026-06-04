@@ -6,7 +6,8 @@ import (
 	"github.com/pelletier/go-toml/v2"
 )
 
-var defaultServer = "https://pushnpray.polydo.dev"
+const DefaultManifestName = "pushnpray.toml"
+const defaultServer = "https://pushnpray.polydo.dev"
 
 func Marshal(manifest Manifest) ([]byte, error) {
 	if manifest.Server == defaultServer {

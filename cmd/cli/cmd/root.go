@@ -6,6 +6,7 @@ import (
 	"pushnpray/cmd/cli/cmd/env"
 	"pushnpray/cmd/cli/cmd/pat"
 	"pushnpray/cmd/cli/cmd/project"
+	"pushnpray/internal/manifest"
 
 	"github.com/spf13/cobra"
 )
@@ -24,7 +25,7 @@ func Execute() {
 }
 
 func init() {
-	rootCmd.Flags().StringP("file", "f", "pushnpray.toml", "Path to a project manifest")
+	rootCmd.Flags().StringP("file", "f", manifest.DefaultManifestName, "Path to a project manifest")
 
 	var _ = rootCmd.MarkFlagFilename("file", "toml")
 

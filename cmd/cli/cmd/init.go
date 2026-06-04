@@ -51,7 +51,7 @@ var initCmd = &cobra.Command{
 
 		fmt.Println("Manifest initialized")
 
-		return os.WriteFile("pushnpray.toml", data, 0644)
+		return os.WriteFile(manifest.DefaultManifestName, data, 0644)
 	},
 	SilenceUsage: true,
 }
