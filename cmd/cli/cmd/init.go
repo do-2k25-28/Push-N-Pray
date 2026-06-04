@@ -28,11 +28,6 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
-		manifestPath, err := cmd.Root().Flags().GetString("file")
-		if err != nil {
-			return err
-		}
-
 		projectResponse, err := client.CreateProject(cmd.Context(), api.CreateProjectRequest{
 			Slug:          projectName,
 			RepositoryURL: repositoryURL,
@@ -46,6 +41,7 @@ var initCmd = &cobra.Command{
 		man := manifest.Manifest{
 			ProjectId:     projectResponse.ID,
 			RepositoryUrl: repositoryURL,
+			Server:        prerun.GetServer(cmd.Context()),
 		}
 
 		data, err := manifest.Marshal(man)
@@ -53,9 +49,9 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
-		fmt.Printf("Manifest initialized at %s\n", manifestPath)
+		fmt.Println("Manifest initialized")
 
-		return os.WriteFile(manifestPath, data, 0644)
+		return os.WriteFile("pushnpray.toml", data, 0644)
 	},
 	SilenceUsage: true,
 }

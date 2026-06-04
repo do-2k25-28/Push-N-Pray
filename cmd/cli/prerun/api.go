@@ -10,8 +10,10 @@ import (
 )
 
 type apiCtxKeyType int
+type serverCtxKeyType int
 
 const ApiContextKey apiCtxKeyType = 1
+const ServerContextKey serverCtxKeyType = 2
 
 func ApiClientFromArg(arg string) CobraPreRun {
 	return func(cmd *cobra.Command, args []string) error {
@@ -33,6 +35,9 @@ func ApiClientFromManifest() CobraPreRun {
 
 func apiClient(server string) CobraPreRun {
 	return func(cmd *cobra.Command, args []string) error {
+		ctx := context.WithValue(cmd.Context(), ServerContextKey, server)
+		cmd.SetContext(ctx)
+
 		auth, err := session.GetAuthClientOption(server)
 		if err != nil {
 			return err
@@ -43,8 +48,8 @@ func apiClient(server string) CobraPreRun {
 			return err
 		}
 
-		ctx := context.WithValue(cmd.Context(), ApiContextKey, client)
-		cmd.SetContext(ctx)
+		ctx2 := context.WithValue(cmd.Context(), ApiContextKey, client)
+		cmd.SetContext(ctx2)
 
 		return nil
 	}
@@ -52,4 +57,8 @@ func apiClient(server string) CobraPreRun {
 
 func GetApiClient(ctx context.Context) *api.Client {
 	return ctx.Value(ApiContextKey).(*api.Client)
+}
+
+func GetServer(ctx context.Context) string {
+	return ctx.Value(ServerContextKey).(string)
 }
