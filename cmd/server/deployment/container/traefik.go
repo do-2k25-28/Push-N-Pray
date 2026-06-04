@@ -4,8 +4,8 @@ import "fmt"
 
 const traefikNet = "traefik"
 
-func traefikLabels(containerName, appName, projectSlug, projectId string) map[string]string {
-	domain := fmt.Sprintf("%s-%s-%s.pushnpray.polydo.dev", appName, projectSlug, projectId)
+func traefikLabels(containerName, appName, projectSlug, projectID string) map[string]string {
+	domain := fmt.Sprintf("%s-%s-%s.pushnpray.polydo.dev", appName, projectSlug, projectID)
 	return map[string]string{
 		"traefik.enable":         "true",
 		"traefik.docker.network": traefikNet,

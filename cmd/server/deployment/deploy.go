@@ -11,14 +11,14 @@ import (
 	"pushnpray/internal/manifest"
 )
 
-func DeployProject(projectSlug string, projectId string, projectManifest *manifest.Manifest, workspaceDir string) error {
+func DeployProject(projectSlug string, projectID string, projectManifest *manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
 	dockerClient, err := internal.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
 
-	if err := dockerClient.EnsureNetwork(ctx, container.ProjectNetworkName(projectId)); err != nil {
+	if err := dockerClient.EnsureNetwork(ctx, container.ProjectNetworkName(projectID)); err != nil {
 		return fmt.Errorf("failed to create project network: %w", err)
 	}
 
@@ -26,18 +26,18 @@ func DeployProject(projectSlug string, projectId string, projectManifest *manife
 	if err != nil {
 		return fmt.Errorf("invalid services configuration: %w", err)
 	}
-	if err := service.UpdateServices(ctx, dockerClient, projectId, serviceDefinitions); err != nil {
+	if err := service.UpdateServices(ctx, dockerClient, projectID, serviceDefinitions); err != nil {
 		return fmt.Errorf("failed to update services: %w", err)
 	}
 
 	apps := make([]docker.DeployableApp, 0, len(projectManifest.Apps.Dockerfile)+len(projectManifest.Apps.Docker))
 
 	for _, app := range projectManifest.Apps.Dockerfile {
-		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectId, workspaceDir))
+		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectID, workspaceDir))
 	}
 
 	for _, app := range projectManifest.Apps.Docker {
-		apps = append(apps, docker.NewImageApp(app, projectSlug, projectId))
+		apps = append(apps, docker.NewImageApp(app, projectSlug, projectID))
 	}
 
 	return runApps(ctx, dockerClient, apps)

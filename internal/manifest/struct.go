@@ -16,7 +16,7 @@ type DockerApp struct {
 }
 
 type Service struct {
-	Id string `toml:"id"`
+	ID string `toml:"id"`
 }
 
 type PostgresService struct {

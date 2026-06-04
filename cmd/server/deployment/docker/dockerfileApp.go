@@ -15,10 +15,10 @@ type DockerfileApp struct {
 	contextPath    string
 }
 
-func NewDockerfileApp(app manifest.DockerFileApp, projectSlug, projectId, workspaceDir string) DockerfileApp {
-	containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectId)
+func NewDockerfileApp(app manifest.DockerFileApp, projectSlug, projectID, workspaceDir string) DockerfileApp {
+	containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
 	return DockerfileApp{
-		App:            container.NewApp(app.Name, containerName+"-image", projectSlug, projectId),
+		App:            container.NewApp(app.Name, containerName+"-image", projectSlug, projectID),
 		dockerfilePath: utils.ResolvePath(workspaceDir, app.Dockerfile),
 		contextPath:    utils.ResolvePath(workspaceDir, app.Context),
 	}

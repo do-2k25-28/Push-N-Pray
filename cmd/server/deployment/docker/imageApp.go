@@ -12,9 +12,9 @@ type ImageApp struct {
 	container.App
 }
 
-func NewImageApp(app manifest.DockerApp, projectSlug, projectId string) ImageApp {
+func NewImageApp(app manifest.DockerApp, projectSlug, projectID string) ImageApp {
 	return ImageApp{
-		App: container.NewApp(app.Name, app.Image, projectSlug, projectId),
+		App: container.NewApp(app.Name, app.Image, projectSlug, projectID),
 	}
 }
 

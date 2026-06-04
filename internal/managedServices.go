@@ -38,10 +38,10 @@ func (c *Client) EnsureVolume(ctx context.Context, name string, labels map[strin
 	return nil
 }
 
-func (c *Client) ListServiceContainers(ctx context.Context, projectId string) ([]ServiceContainer, error) {
+func (c *Client) ListServiceContainers(ctx context.Context, projectID string) ([]ServiceContainer, error) {
 	result, err := c.docker.ContainerList(ctx, dockerclient.ContainerListOptions{
 		All:     true,
-		Filters: make(dockerclient.Filters).Add("label", "pushnpray.service=true").Add("label", "pushnpray.project-id="+projectId),
+		Filters: make(dockerclient.Filters).Add("label", "pushnpray.service=true").Add("label", "pushnpray.project-id="+projectID),
 	})
 	if err != nil {
 		return nil, fmt.Errorf("list managed containers: %w", err)

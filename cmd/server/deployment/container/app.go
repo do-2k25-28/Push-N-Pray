@@ -10,18 +10,18 @@ type App struct {
 	name          string
 	containerName string
 	imageName     string
-	projectId     string
+	projectID     string
 	labels        map[string]string
 }
 
-func NewApp(name, imageName, projectSlug, projectId string) App {
-	containerName := fmt.Sprintf("%s-%s-%s", name, projectSlug, projectId)
+func NewApp(name, imageName, projectSlug, projectID string) App {
+	containerName := fmt.Sprintf("%s-%s-%s", name, projectSlug, projectID)
 	return App{
 		name:          name,
 		containerName: containerName,
 		imageName:     imageName,
-		projectId:     projectId,
-		labels:        traefikLabels(containerName, name, projectSlug, projectId),
+		projectID:     projectID,
+		labels:        traefikLabels(containerName, name, projectSlug, projectID),
 	}
 }
 
@@ -39,7 +39,7 @@ func (app App) config() internal.ContainerConfig {
 		Name:  app.containerName,
 		Networks: []internal.ContainerNetwork{
 			{Name: traefikNet},
-			{Name: ProjectNetworkName(app.projectId)},
+			{Name: ProjectNetworkName(app.projectID)},
 		},
 		Labels: app.labels,
 	}
