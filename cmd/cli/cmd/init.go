@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"pushnpray/cmd/cli/prerun"
 	"pushnpray/internal/manifest"
@@ -40,6 +41,8 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
+		fmt.Println("Project created")
+
 		man := manifest.Manifest{
 			ProjectId:     projectResponse.ID,
 			RepositoryUrl: repositoryURL,
@@ -49,6 +52,8 @@ var initCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
+
+		fmt.Printf("Manifest initialized at %s\n", manifestPath)
 
 		return os.WriteFile(manifestPath, data, 0644)
 	},
