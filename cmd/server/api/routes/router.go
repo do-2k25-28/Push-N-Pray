@@ -39,7 +39,7 @@ func NewRouter() *gin.Engine {
 	projects := router.Group("/v1/projects")
 	projects.Use(middleware.Auth(), middleware.ProjectOwnership())
 
-	projects.POST("/:projectId", CreateProject)
+	projects.POST("", CreateProject)
 	projects.GET("", ListProjects)
 	projects.GET("/:projectId", GetProject)
 	projects.DELETE("/:projectId", DeleteProject)
