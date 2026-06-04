@@ -4,7 +4,6 @@ import (
 	"os"
 	"pushnpray/cmd/cli/prerun"
 	"pushnpray/internal/manifest"
-	"pushnpray/internal/session"
 	"pushnpray/pkg/api"
 
 	"github.com/spf13/cobra"
@@ -16,6 +15,8 @@ var initCmd = &cobra.Command{
 	Long:    `Create a project on the platform using the current repository metadata and store the project id locally.`,
 	PreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		client := prerun.GetApiClient(cmd.Context())
+
 		projectName, err := cmd.Flags().GetString("name")
 		if err != nil {
 			return err
@@ -26,22 +27,7 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
-		serverURL, err := cmd.Flags().GetString("server")
-		if err != nil {
-			return err
-		}
-
 		manifestPath, err := cmd.Root().Flags().GetString("file")
-		if err != nil {
-			return err
-		}
-
-		authOption, err := session.GetAuthClientOption(serverURL)
-		if err != nil {
-			return err
-		}
-
-		client, err := api.NewClient(serverURL, authOption)
 		if err != nil {
 			return err
 		}
