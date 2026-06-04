@@ -31,6 +31,10 @@ func (app App) ImageName() string {
 	return app.imageName
 }
 
+func (app App) ContainerName() string {
+	return app.containerName
+}
+
 func (app App) config() internal.ContainerConfig {
 	return internal.ContainerConfig{
 		Image:       app.imageName,
