@@ -11,14 +11,20 @@ type manifestCtxKeyType int
 
 const ManifestContextKey manifestCtxKeyType = 0
 
-func Manifest(cmd *cobra.Command, args []string) error {
-	man, err := manifest.Unmarshal("pushnpray.toml")
-	if err != nil {
-		return err
+func Manifest() CobraPreRun {
+	return func(cmd *cobra.Command, args []string) error {
+		man, err := manifest.Unmarshal("pushnpray.toml")
+		if err != nil {
+			return err
+		}
+
+		ctx := context.WithValue(cmd.Context(), ManifestContextKey, man)
+		cmd.SetContext(ctx)
+
+		return nil
 	}
+}
 
-	ctx := context.WithValue(cmd.Context(), ManifestContextKey, man)
-	cmd.SetContext(ctx)
-
-	return nil
+func GetManifest(ctx context.Context) *manifest.Manifest {
+	return ctx.Value(ManifestContextKey).(*manifest.Manifest)
 }

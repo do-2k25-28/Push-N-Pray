@@ -13,21 +13,43 @@ type apiCtxKeyType int
 
 const ApiContextKey apiCtxKeyType = 1
 
-func ApiClient(cmd *cobra.Command, args []string) error {
-	man := cmd.Context().Value(ManifestContextKey).(*manifest.Manifest)
+func ApiClientFromArg(arg string) CobraPreRun {
+	return func(cmd *cobra.Command, args []string) error {
+		server, err := cmd.Flags().GetString(arg)
+		if err != nil {
+			return err
+		}
 
-	auth, err := session.GetAuthClientOption(man.Server)
-	if err != nil {
-		return err
+		return apiClient(server)(cmd, args)
 	}
+}
 
-	client, err := api.NewClient(man.Server, auth)
-	if err != nil {
-		return err
+func ApiClientFromManifest() CobraPreRun {
+	return func(cmd *cobra.Command, args []string) error {
+		man := cmd.Context().Value(ManifestContextKey).(*manifest.Manifest)
+		return apiClient(man.Server)(cmd, args)
 	}
+}
 
-	ctx := context.WithValue(cmd.Context(), ApiContextKey, client)
-	cmd.SetContext(ctx)
+func apiClient(server string) CobraPreRun {
+	return func(cmd *cobra.Command, args []string) error {
+		auth, err := session.GetAuthClientOption(server)
+		if err != nil {
+			return err
+		}
 
-	return nil
+		client, err := api.NewClient(server, auth)
+		if err != nil {
+			return err
+		}
+
+		ctx := context.WithValue(cmd.Context(), ApiContextKey, client)
+		cmd.SetContext(ctx)
+
+		return nil
+	}
+}
+
+func GetApiClient(ctx context.Context) *api.Client {
+	return ctx.Value(ApiContextKey).(*api.Client)
 }

@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"os"
+	"pushnpray/cmd/cli/prerun"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/session"
 	"pushnpray/pkg/api"
@@ -10,12 +11,10 @@ import (
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a new project",
-	Long:  `Create a project on the platform using the current repository metadata and store the project id locally.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return session.VerifyAuth()
-	},
+	Use:     "init",
+	Short:   "Initialize a new project",
+	Long:    `Create a project on the platform using the current repository metadata and store the project id locally.`,
+	PreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		projectName, err := cmd.Flags().GetString("name")
 		if err != nil {

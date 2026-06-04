@@ -3,8 +3,6 @@ package cmd
 import (
 	"fmt"
 	"pushnpray/cmd/cli/prerun"
-	"pushnpray/internal/manifest"
-	"pushnpray/pkg/api"
 
 	"github.com/spf13/cobra"
 )
@@ -14,10 +12,10 @@ var statusCmd = &cobra.Command{
 	Short:        "Show project status",
 	Long:         "Show information about the current project and the most recent deployments.",
 	SilenceUsage: true,
-	PreRunE:      prerun.Combine(prerun.Auth, prerun.Manifest),
+	PreRunE:      prerun.Combine(prerun.Auth(), prerun.Manifest(), prerun.ApiClientFromManifest()),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		man := cmd.Context().Value(prerun.ManifestContextKey).(*manifest.Manifest)
-		client := cmd.Context().Value(prerun.ApiContextKey).(*api.Client)
+		man := prerun.GetManifest(cmd.Context())
+		client := prerun.GetApiClient(cmd.Context())
 
 		project, err := client.GetProject(cmd.Context(), man.ProjectId)
 		if err != nil {
