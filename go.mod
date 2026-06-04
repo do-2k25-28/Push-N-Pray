@@ -14,7 +14,7 @@ require (
 	github.com/golang-jwt/jwt/v5 v5.3.1
 	github.com/google/uuid v1.6.0
 	github.com/joho/godotenv v1.5.1
-	github.com/moby/moby/api v1.52.0
+	github.com/moby/moby/api v1.54.2
 	github.com/moby/moby/client v0.1.0
 	gorm.io/driver/postgres v1.6.0
 	gorm.io/gorm v1.31.1
