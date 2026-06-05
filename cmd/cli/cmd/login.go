@@ -36,6 +36,8 @@ var loginCmd = &cobra.Command{
 				Password: password,
 			})
 
+			fmt.Println("Successfuly logged in.")
+
 			if err != nil {
 				return err
 			}

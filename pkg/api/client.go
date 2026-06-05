@@ -180,6 +180,21 @@ func (c *Client) CreateProject(ctx context.Context, payload CreateProjectRequest
 	return &resp, nil
 }
 
+func (c *Client) GetProject(ctx context.Context, projectID string) (*Project, error) {
+	path := fmt.Sprintf("projects/%s", url.PathEscape(projectID))
+	req, err := c.newRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp Project
+	if err := c.do(req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
 func (c *Client) DeleteProject(ctx context.Context, projectID string) error {
 	path := fmt.Sprintf("projects/%s", url.PathEscape(projectID))
 	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
@@ -213,6 +228,21 @@ func (c *Client) DeploymentInfo(ctx context.Context, projectID, deploymentID str
 	}
 
 	var resp DeploymentInfoResponse
+	if err := c.do(req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (c *Client) ListDeployments(ctx context.Context, projectID string) (*ListDeploymentsResponse, error) {
+	path := fmt.Sprintf("projects/%s/deployments", url.PathEscape(projectID))
+	req, err := c.newRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp ListDeploymentsResponse
 	if err := c.do(req, &resp); err != nil {
 		return nil, err
 	}

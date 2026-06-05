@@ -1,48 +1,29 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
+	"pushnpray/cmd/cli/prerun"
 	"pushnpray/internal/manifest"
-	"pushnpray/internal/session"
 	"pushnpray/pkg/api"
 
 	"github.com/spf13/cobra"
 )
 
 var initCmd = &cobra.Command{
-	Use:   "init",
-	Short: "Initialize a new project",
-	Long:  `Create a project on the platform using the current repository metadata and store the project id locally.`,
-	PreRunE: func(cmd *cobra.Command, args []string) error {
-		return session.VerifyAuth()
-	},
+	Use:     "init",
+	Short:   "Initialize a new project",
+	Long:    `Create a project on the platform using the current repository metadata and store the project id locally.`,
+	PreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
 	RunE: func(cmd *cobra.Command, args []string) error {
+		client := prerun.GetApiClient(cmd.Context())
+
 		projectName, err := cmd.Flags().GetString("name")
 		if err != nil {
 			return err
 		}
 
 		repositoryURL, err := cmd.Flags().GetString("repository")
-		if err != nil {
-			return err
-		}
-
-		serverURL, err := cmd.Flags().GetString("server")
-		if err != nil {
-			return err
-		}
-
-		manifestPath, err := cmd.Root().Flags().GetString("file")
-		if err != nil {
-			return err
-		}
-
-		authOption, err := session.GetAuthClientOption(serverURL)
-		if err != nil {
-			return err
-		}
-
-		client, err := api.NewClient(serverURL, authOption)
 		if err != nil {
 			return err
 		}
@@ -55,17 +36,22 @@ var initCmd = &cobra.Command{
 			return err
 		}
 
+		fmt.Println("Project created")
+
 		man := manifest.Manifest{
 			ProjectId:     projectResponse.ID,
 			RepositoryUrl: repositoryURL,
+			Server:        prerun.GetServer(cmd.Context()),
 		}
 
-		data, err := manifest.Marshal(&man)
+		data, err := manifest.Marshal(man)
 		if err != nil {
 			return err
 		}
 
-		return os.WriteFile(manifestPath, data, 0644)
+		fmt.Println("Manifest initialized")
+
+		return os.WriteFile(manifest.DefaultManifestName, data, 0644)
 	},
 	SilenceUsage: true,
 }

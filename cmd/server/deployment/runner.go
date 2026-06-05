@@ -25,7 +25,7 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 	}
 
 	workspaceDir := filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
-	manifestPath := filepath.Join(workspaceDir, "pushnpray.toml")
+	manifestPath := filepath.Join(workspaceDir, manifest.DefaultManifestName)
 
 	workspaceDir = filepath.Join("/tmp", "pushnpray-deployments", dep.ID)
 	if err := os.MkdirAll(workspaceDir, 0755); err != nil {

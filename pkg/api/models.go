@@ -58,6 +58,15 @@ type CreateProjectResponse struct {
 	ID string `json:"id"`
 }
 
+// Project represents a project instance.
+type Project struct {
+	ID            string `json:"id"`
+	Slug          string `json:"slug"`
+	RepositoryURL string `json:"repositoryUrl"`
+	CreatedAt     string `json:"createdAt"`
+	UpdatedAt     string `json:"updatedAt"`
+}
+
 // DeployProjectRequest selects a deploy target.
 type DeployProjectRequest struct {
 	Tag    string `json:"tag,omitempty"`
@@ -75,6 +84,20 @@ type DeploymentInfoResponse struct {
 	Status  string `json:"status"`
 	URL     string `json:"url,omitempty"`
 	Message string `json:"message,omitempty"`
+}
+
+// Deployment represents a deployment in the system.
+type Deployment struct {
+	ID        string `json:"id"`
+	ProjectID string `json:"projectId"`
+	Status    string `json:"status"`
+	CreatedAt string `json:"createdAt"`
+	UpdatedAt string `json:"updatedAt"`
+}
+
+// ListDeploymentsResponse provides a list of deployments.
+type ListDeploymentsResponse struct {
+	Deployments []Deployment `json:"deployments"`
 }
 
 // EnvVar represents a project environment variable.
