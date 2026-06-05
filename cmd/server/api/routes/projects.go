@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
-	"pushnpray/internal"
+	"pushnpray/internal/dockerw"
 
 	pkgapi "pushnpray/pkg/api"
 
@@ -71,17 +71,19 @@ func DeleteProject(c *gin.Context) {
 	project := c.MustGet("project").(models.Project)
 
 	pattern := fmt.Sprintf("%s-%s", project.Slug, project.ID)
-	dockerClient, err := internal.NewClient(c.Request.Context())
+
+	dockerClient, err := dockerw.NewClient(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
+
 	if err := dockerClient.StopContainersByPattern(c.Request.Context(), pattern); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		c.Status(http.StatusInternalServerError)
 		return
 	}
 	if err := dockerClient.RemoveContainersByPattern(c.Request.Context(), pattern); err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": internal.ErrDockerStopRemoveFailed})
+		c.Status(http.StatusInternalServerError)
 	}
 
 	if err := database.GetDB().Delete(&project).Error; err != nil {

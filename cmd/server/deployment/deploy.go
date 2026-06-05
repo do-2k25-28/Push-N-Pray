@@ -2,54 +2,62 @@ package deployment
 
 import (
 	"context"
-	"errors"
 	"fmt"
-	"pushnpray/cmd/server/deployment/container"
-	"pushnpray/cmd/server/deployment/docker"
-	"pushnpray/cmd/server/deployment/service"
-	"pushnpray/internal"
+	"pushnpray/cmd/server/deployment/project"
+	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 )
 
-func DeployProject(projectSlug string, projectID string, manifest *manifest.Manifest, workspaceDir string) error {
+func DeployProject(projectSlug string, projectID string, manifest manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
-	dockerClient, err := internal.NewClient(ctx)
+	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
 
-	if err := dockerClient.EnsureNetwork(ctx, container.ProjectNetworkName(projectID)); err != nil {
+	// Create project Docker network
+
+	if err := docker.CreateNetworkIfNotExist(ctx, project.NetworkName(projectID)); err != nil {
 		return fmt.Errorf("failed to create project network: %w", err)
 	}
 
-	serviceDefinitions, err := service.ServiceDefinitionsFromManifest(manifest)
-	if err != nil {
-		return fmt.Errorf("invalid services configuration: %w", err)
-	}
-	if err := service.UpdateServices(ctx, dockerClient, projectID, serviceDefinitions); err != nil {
-		return fmt.Errorf("failed to update services: %w", err)
-	}
+	// Handle managed services creation and deletion
 
-	apps := make([]docker.DeployableApp, 0, manifest.GetApplicationCount())
+	_services := make([]services.ManagedService, 0, manifest.GetServiceCount())
+	envs := []map[string]map[string]string{}
 
-	for _, app := range manifest.Apps.Dockerfile {
-		apps = append(apps, docker.NewDockerfileApp(app, projectSlug, projectID, workspaceDir))
+	for _, service := range manifest.Services.Postgres {
+		pg := services.PostgresService{Manifest: service}
+		_services = append(_services, &pg)
 	}
 
-	for _, app := range manifest.Apps.Docker {
-		apps = append(apps, docker.NewImageApp(app, projectSlug, projectID))
-	}
-
-	return runApps(ctx, dockerClient, apps)
-}
-
-func runApps(ctx context.Context, dockerClient *internal.Client, apps []docker.DeployableApp) error {
-	var deployErrors []error
-	for _, app := range apps {
-		if err := app.RunContainer(ctx, dockerClient); err != nil {
-			deployErrors = append(deployErrors, err)
+	for _, service := range _services {
+		deployed, err := service.IsDeployed(ctx, manifest)
+		if err != nil {
+			return err
 		}
+
+		if !deployed {
+			if err := service.Prepare(ctx, docker, manifest); err != nil {
+				return fmt.Errorf("filed to prepare deployment of service")
+			}
+
+			if err := service.Deploy(ctx, docker, manifest); err != nil {
+				return fmt.Errorf("failed to deploy service")
+			}
+		}
+
+		env, err := service.EnvToInject(manifest)
+		if err != nil {
+			return err
+		}
+		envs = append(envs, env)
 	}
 
-	return errors.Join(deployErrors...)
+	fmt.Println(envs)
+
+	// Deploy or update application containers
+
+	return nil
 }

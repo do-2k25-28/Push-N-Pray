@@ -16,7 +16,8 @@ type DockerApp struct {
 }
 
 type Service struct {
-	ID string `toml:"id"`
+	Name   string   `toml:"name"`
+	UsedBy []string `toml:"used-by"`
 }
 
 type PostgresService struct {
@@ -52,6 +53,17 @@ type Manifest struct {
 
 func (m *Manifest) GetApplicationCount() int {
 	return len(m.Apps.Docker) + len(m.Apps.Dockerfile)
+}
+
+func (m *Manifest) GetApps() []App {
+	apps := make([]App, 0, m.GetApplicationCount())
+	for _, app := range m.Apps.Docker {
+		apps = append(apps, app.App)
+	}
+	for _, app := range m.Apps.Dockerfile {
+		apps = append(apps, app.App)
+	}
+	return apps
 }
 
 func (m *Manifest) GetServiceCount() int {
