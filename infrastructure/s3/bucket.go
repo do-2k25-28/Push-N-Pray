@@ -41,6 +41,13 @@ func NewClient() (*Client, error) {
 	return &Client{s3: client}, nil
 }
 
+func (c *Client) DeleteBucket(ctx context.Context, bucketName string) error {
+	_, err := c.s3.DeleteBucket(ctx, &s3.DeleteBucketInput{
+		Bucket: aws.String(bucketName),
+	})
+	return err
+}
+
 // EnsureBucket creates the bucket if it does not already exist.
 func (c *Client) EnsureBucket(ctx context.Context, bucketName string) error {
 	_, err := c.s3.CreateBucket(ctx, &s3.CreateBucketInput{
