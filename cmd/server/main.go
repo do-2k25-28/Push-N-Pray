@@ -12,6 +12,12 @@ import (
 func main() {
 	database.InitDB()
 
+	cephNetwork, err := utils.InitCephNetwork("pushnpray-ceph")
+	if err != nil {
+		log.Fatalf("Failed to initialize CEPH network: %v", err)
+	}
+	log.Printf("CEPH network %q ready (subnet %s, monitor %s)", cephNetwork.Name, cephNetwork.Subnet, cephNetwork.MonitorIP)
+
 	router := routes.NewRouter()
 
 	var serverPort = os.Getenv("HTTP_PORT")
@@ -21,7 +27,7 @@ func main() {
 
 	serverPort = utils.FindAvailablePort(serverPort)
 	log.Printf("using port %s", serverPort)
-	err := router.Run(":" + serverPort)
+	err = router.Run(":" + serverPort)
 
 	if err != nil {
 		log.Fatalf("Server failed: %v. Make sure the port %s is available.", err, serverPort)
