@@ -49,15 +49,14 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 		return
 	}
 
-	projectConfig, err := manifest.Unmarshal(manifestPath)
+	man, err := manifest.Unmarshal(manifestPath)
 	if err != nil {
 		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgManifestInvalid, err))
 		return
 	}
 
-	serviceCount := len(projectConfig.Services.Postgres) + len(projectConfig.Services.Redis) + len(projectConfig.Services.S3)
-	reportStatus(models.InProgress, fmt.Sprintf("Updating %d service(s), then deploying %d app(s)", serviceCount, len(projectConfig.Apps.Docker)+len(projectConfig.Apps.Dockerfile)))
-	if err := DeployProject(project.Slug, project.ID, projectConfig, workspaceDir); err != nil {
+	reportStatus(models.InProgress, fmt.Sprintf("Updating %d service(s), then deploying %d app(s)", man.GetServiceCount(), man.GetApplicationCount()))
+	if err := DeployProject(project.Slug, project.ID, man, workspaceDir); err != nil {
 		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgDeployFailed, err))
 		return
 	}

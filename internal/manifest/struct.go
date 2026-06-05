@@ -49,3 +49,11 @@ type Manifest struct {
 		S3       []S3Service       `toml:"s3,omitempty"`
 	} `toml:"services,omitempty"`
 }
+
+func (m *Manifest) GetApplicationCount() int {
+	return len(m.Apps.Docker) + len(m.Apps.Dockerfile)
+}
+
+func (m *Manifest) GetServiceCount() int {
+	return len(m.Services.S3) + len(m.Services.Redis) + len(m.Services.Postgres)
+}
