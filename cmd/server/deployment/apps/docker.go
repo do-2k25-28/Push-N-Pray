@@ -1,4 +1,4 @@
-package docker
+package apps
 
 import (
 	"context"
@@ -10,12 +10,16 @@ type DockerApp struct {
 	manifest.DockerApp
 }
 
-func (app *DockerApp) RunContainer(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
-	container := dockerw.ContainerConfig{
-		Image:    app.Image,
-		Name:     "app-" + app.Name + "-" + manifest.ProjectId,
-		Networks: []dockerw.ContainerNetwork{},
-	}
+func (app *DockerApp) AppName() string {
+	return app.Name
+}
 
-	return client.RunContainerFromConfig(ctx, container)
+func (app *DockerApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
+	return nil
+}
+
+func (app *DockerApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig {
+	return dockerw.ContainerConfig{
+		Image: app.Image,
+	}
 }

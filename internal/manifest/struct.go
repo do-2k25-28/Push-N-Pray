@@ -1,18 +1,18 @@
 package manifest
 
 type App struct {
-	Name string
+	Name string `toml:"name"`
 }
 
 type DockerFileApp struct {
 	App
-	Dockerfile string
-	Context    string
+	Dockerfile string `toml:"dockerfile"`
+	Context    string `toml:"context"`
 }
 
 type DockerApp struct {
 	App
-	Image string
+	Image string `toml:"image"`
 }
 
 type Service struct {

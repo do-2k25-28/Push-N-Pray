@@ -1,8 +1,7 @@
-package docker
+package apps
 
 import (
 	"context"
-	"fmt"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 )
@@ -11,18 +10,22 @@ type DockerfileApp struct {
 	manifest.DockerFileApp
 }
 
-func (app DockerfileApp) RunContainer(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
-	name := manifest.ProjectId + "-" + app.Name
-	img := "img-" + name
+func (app *DockerfileApp) imageTag(manifest manifest.Manifest) string {
+	// TODO?: add deployment ID
+	return "img-" + manifest.ProjectId + "-" + app.Name
+}
 
-	if err := client.BuildImage(ctx, img, app.Dockerfile, app.Context); err != nil {
-		return fmt.Errorf("failed to deploy app %s: %w", name, err)
+func (app *DockerfileApp) AppName() string {
+	return app.Name
+}
+
+func (app *DockerfileApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
+	// TODO!: prefix path with cloned path, right now this doesn't build anything
+	return docker.BuildImage(ctx, app.imageTag(manifest), app.Dockerfile, app.Context)
+}
+
+func (app *DockerfileApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig {
+	return dockerw.ContainerConfig{
+		Image: app.imageTag(manifest),
 	}
-
-	container := dockerw.ContainerConfig{
-		Name:  "app-" + name,
-		Image: img,
-	}
-
-	return client.RunContainerFromConfig(ctx, container)
 }

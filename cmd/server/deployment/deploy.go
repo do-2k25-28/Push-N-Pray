@@ -3,13 +3,15 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
+	"pushnpray/internal/utils"
 )
 
-func DeployProject(projectSlug string, projectID string, manifest manifest.Manifest, workspaceDir string) error {
+func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
@@ -18,14 +20,19 @@ func DeployProject(projectSlug string, projectID string, manifest manifest.Manif
 
 	// Create project Docker network
 
-	if err := docker.CreateNetworkIfNotExist(ctx, project.NetworkName(projectID)); err != nil {
+	if err := docker.CreateNetworkIfNotExist(ctx, project.NetworkName(manifest.ProjectId)); err != nil {
 		return fmt.Errorf("failed to create project network: %w", err)
+	}
+
+	projectNetwork := dockerw.ContainerNetwork{
+		Name:    project.NetworkName(manifest.ProjectId),
+		Aliases: []string{},
 	}
 
 	// Handle managed services creation and deletion
 
 	_services := make([]services.ManagedService, 0, manifest.GetServiceCount())
-	envs := []map[string]map[string]string{}
+	envsFromServices := []map[string]map[string]string{}
 
 	for _, service := range manifest.Services.Postgres {
 		pg := services.PostgresService{Manifest: service}
@@ -52,12 +59,52 @@ func DeployProject(projectSlug string, projectID string, manifest manifest.Manif
 		if err != nil {
 			return err
 		}
-		envs = append(envs, env)
+		envsFromServices = append(envsFromServices, env)
 	}
 
-	fmt.Println(envs)
+	appToEnv := utils.MergeMaps(envsFromServices)
+
+	fmt.Println(envsFromServices)
 
 	// Deploy or update application containers
+
+	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
+
+	for _, app := range manifest.Apps.Docker {
+		_apps = append(_apps, &apps.DockerApp{DockerApp: app})
+	}
+
+	for _, app := range manifest.Apps.Dockerfile {
+		_apps = append(_apps, &apps.DockerfileApp{DockerFileApp: app})
+	}
+
+	for _, app := range _apps {
+		if err := app.Prepare(ctx, docker, manifest); err != nil {
+			return err
+		}
+
+		config := app.ContainerConfig(ctx, manifest)
+
+		config.Env = utils.MergeMap(
+			config.Env,
+			appToEnv[app.AppName()], // Override user defined vars if they overlap
+		)
+
+		fmt.Printf("%+v\n", config.Env)
+
+		config.Name = "app-" + manifest.ProjectId + "-" + app.AppName()
+		config.Networks = []dockerw.ContainerNetwork{projectNetwork}
+		config.Labels = utils.MergeMap(
+			config.Labels,
+			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
+		)
+		fmt.Printf("%+v\n", config.Labels)
+		fmt.Printf("%+v\n", config)
+
+		if err := docker.RunContainerFromConfig(ctx, config); err != nil {
+			return err
+		}
+	}
 
 	return nil
 }

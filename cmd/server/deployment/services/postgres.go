@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"crypto/rand"
+	"fmt"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
 	"pushnpray/internal/dockerw"
@@ -31,8 +32,8 @@ func getServiceDataFromDatabase(projectId string, name string) (*models.Postgres
 }
 
 func (s *PostgresService) IsDeployed(ctx context.Context, manifest manifest.Manifest) (bool, error) {
-	var data models.PostgresService
-	res := database.GetDB().Select("1").Where("project = ? AND name = ?", manifest.ProjectId, s.Manifest.Name).Limit(1).Find(&data)
+	var v int64
+	res := database.GetDB().Table("postgres_services").Select("1").Where("project = ? AND name = ?", manifest.ProjectId, s.Manifest.Name).Limit(1).Find(&v)
 
 	if res.Error != nil {
 		return false, res.Error
@@ -60,6 +61,9 @@ func (s *PostgresService) Prepare(ctx context.Context, client *dockerw.Client, m
 }
 
 func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
+	fmt.Printf("%+v\n", s)
+	fmt.Printf("%+v\n", manifest)
+
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return err
@@ -79,6 +83,9 @@ func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, ma
 }
 
 func (s *PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error) {
+	fmt.Printf("%+v\n", s)
+	fmt.Printf("%+v\n", manifest)
+
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return nil, err
