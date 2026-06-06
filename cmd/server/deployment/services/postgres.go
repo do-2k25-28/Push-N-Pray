@@ -3,7 +3,6 @@ package services
 import (
 	"context"
 	"crypto/rand"
-	"fmt"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
 	"pushnpray/internal/dockerw"
@@ -32,6 +31,8 @@ func getServiceDataFromDatabase(projectId string, name string) (*models.Postgres
 }
 
 func (s *PostgresService) IsDeployed(ctx context.Context, manifest manifest.Manifest) (bool, error) {
+	// TODO!: use container presence as a source of truth, not the database
+
 	var v int64
 	res := database.GetDB().Table("postgres_services").Select("1").Where("project = ? AND name = ?", manifest.ProjectId, s.Manifest.Name).Limit(1).Find(&v)
 
@@ -60,10 +61,7 @@ func (s *PostgresService) Prepare(ctx context.Context, client *dockerw.Client, m
 	}).Error
 }
 
-func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
-	fmt.Printf("%+v\n", s)
-	fmt.Printf("%+v\n", manifest)
-
+func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest, network dockerw.ContainerNetwork) error {
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return err
@@ -77,15 +75,13 @@ func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, ma
 			"POSTGRES_PASSWORD": data.Password,
 		},
 		VolumeBinds: []string{s.volumeName(manifest.ProjectId) + ":/var/lib/postgresql"},
+		Networks:    []dockerw.ContainerNetwork{network},
 	}
 
 	return client.RunContainerFromConfig(ctx, container)
 }
 
 func (s *PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error) {
-	fmt.Printf("%+v\n", s)
-	fmt.Printf("%+v\n", manifest)
-
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return nil, err
@@ -95,7 +91,7 @@ func (s *PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]ma
 
 	for _, app := range manifest.GetApps() {
 		if slices.Contains(s.Manifest.UsedBy, app.Name) {
-			prefix := "POSTGRES_" + strings.ToUpper(app.Name) + "_"
+			prefix := "POSTGRES_" + strings.ToUpper(s.Manifest.Name) + "_"
 
 			labels[app.Name] = map[string]string{
 				prefix + "USER":     postgresUser,

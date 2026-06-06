@@ -24,7 +24,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		return fmt.Errorf("failed to create project network: %w", err)
 	}
 
-	projectNetwork := dockerw.ContainerNetwork{
+	network := dockerw.ContainerNetwork{
 		Name:    project.NetworkName(manifest.ProjectId),
 		Aliases: []string{},
 	}
@@ -50,7 +50,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 				return fmt.Errorf("filed to prepare deployment of service")
 			}
 
-			if err := service.Deploy(ctx, docker, manifest); err != nil {
+			if err := service.Deploy(ctx, docker, manifest, network); err != nil {
 				return fmt.Errorf("failed to deploy service")
 			}
 		}
@@ -90,16 +90,12 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 			appToEnv[app.AppName()], // Override user defined vars if they overlap
 		)
 
-		fmt.Printf("%+v\n", config.Env)
-
 		config.Name = "app-" + manifest.ProjectId + "-" + app.AppName()
-		config.Networks = []dockerw.ContainerNetwork{projectNetwork}
+		config.Networks = []dockerw.ContainerNetwork{network}
 		config.Labels = utils.MergeMap(
 			config.Labels,
 			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
 		)
-		fmt.Printf("%+v\n", config.Labels)
-		fmt.Printf("%+v\n", config)
 
 		if err := docker.RunContainerFromConfig(ctx, config); err != nil {
 			return err

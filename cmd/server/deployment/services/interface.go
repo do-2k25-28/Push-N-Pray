@@ -14,7 +14,7 @@ type ManagedService interface {
 	// It's called once the very first time the service is deployed
 	Prepare(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error
 	// Deploy the service
-	Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error
+	Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest, network dockerw.ContainerNetwork) error
 	// Environment variables to inject
 	// This is called everytime the project is deployed
 	EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error)
