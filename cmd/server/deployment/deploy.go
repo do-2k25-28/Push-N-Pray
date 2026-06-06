@@ -64,8 +64,6 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 
 	appToEnv := utils.MergeMaps(envsFromServices)
 
-	fmt.Println(envsFromServices)
-
 	// Deploy or update application containers
 
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
