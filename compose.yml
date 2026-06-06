@@ -8,18 +8,19 @@ services:
       - postgres:/var/lib/postgresql
     ports:
       - 5432:5432
-      
+
   ceph:
     image: quay.io/ceph/demo:latest-squid@sha256:522483cf07cfce6386b8e18a3edfa88a1b32c688dee231d0a6962b1513557723
     container_name: ceph
     hostname: ceph
+    privileged: true
     environment:
-      MON_IP: 192.168.200.2
-      CEPH_PUBLIC_NETWORK: 192.168.200.0/24
+      MON_IP: 10.200.0.2
+      CEPH_PUBLIC_NETWORK: 10.200.0.0/24
+      NETWORK_AUTO_DETECT: 4
       CEPH_DEMO_UID: demo
-      CEPH_DEMO_ACCESS_KEY: ${ACCESS_KEY:-demo-access-key}
-      CEPH_DEMO_SECRET_KEY: ${SECRET_KEY:-demo-secret-key}
-      CEPH_DEMO_BUCKET: ${BUCKET:-default-bucket}
+      CEPH_DEMO_ACCESS_KEY: demo-access-key
+      CEPH_DEMO_SECRET_KEY: demo-secret-key
       RGW_NAME: localhost
     ports:
       - "8080:8080"   # S3-compatible RGW endpoint
@@ -29,17 +30,17 @@ services:
       - ceph-lib:/var/lib/ceph
     networks:
       ceph:
-        ipv4_address: 192.168.200.2
+        ipv4_address: 10.200.0.2
 
 networks:
   ceph:
     driver: bridge
     ipam:
       config:
-        - subnet: 192.168.200.0/24
+        - subnet: 10.200.0.0/24
   traefik:
-    name: traefik
-
+    name: traefik*
+    
 volumes:
   postgres:
   ceph-etc:
