@@ -6,7 +6,7 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
-	"pushnpray/infrastructure/s3"
+	s3infra "pushnpray/infrastructure/s3"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
@@ -105,6 +105,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		}
 	}
 
+	// Manage docker apps in the manifest
 	for _, app := range m.Apps.Docker {
 		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
 		fmt.Printf("Deploying Docker image app: %s\n", app.Name)
@@ -113,15 +114,16 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		}
 	}
 
+	// Manage S3 service if present in manifest
 	if len(m.Services.S3) > 0 {
-		s3Client, err := s3.NewClient()
+		s3Client, err := s3infra.NewClient()
 		if err != nil {
 			return fmt.Errorf("failed to create S3 client: %w", err)
 		}
-		if err := s3Client.EnsureBucket(ctx, projectID); err != nil {
-			return fmt.Errorf("failed to provision S3 bucket: %w", err)
+		s3Service := s3infra.NewProjectService(s3Client, projectSlug, projectID)
+		if err := s3Service.ProvisionBuckets(ctx, m.Services.S3); err != nil {
+			return err
 		}
-		fmt.Printf("S3 bucket %q ready\n", projectID)
 	}
 
 	return nil

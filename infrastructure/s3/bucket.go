@@ -9,10 +9,43 @@ import (
 	"github.com/aws/aws-sdk-go-v2/credentials"
 	"github.com/aws/aws-sdk-go-v2/service/s3"
 	"github.com/aws/smithy-go"
+
+	"pushnpray/internal/manifest"
 )
+
+// Service provisions S3 resources for a specific project.
+type Service interface {
+	ProvisionBuckets(ctx context.Context, services []manifest.S3Service) error
+}
 
 type Client struct {
 	s3 *s3.Client
+}
+
+// ProjectService scopes S3 operations to a single project.
+type ProjectService struct {
+	client      *Client
+	projectSlug string
+	projectID   string
+}
+
+func NewProjectService(client *Client, projectSlug, projectID string) *ProjectService {
+	return &ProjectService{client: client, projectSlug: projectSlug, projectID: projectID}
+}
+
+func (s *ProjectService) bucketName(serviceName string) string {
+	return fmt.Sprintf("%s-%s-%s", serviceName, s.projectSlug, s.projectID)
+}
+
+func (s *ProjectService) ProvisionBuckets(ctx context.Context, services []manifest.S3Service) error {
+	for _, svc := range services {
+		name := s.bucketName(svc.Name)
+		if err := s.client.EnsureBucketExists(ctx, name); err != nil {
+			return fmt.Errorf("failed to provision S3 bucket for service %q: %w", svc.Name, err)
+		}
+		fmt.Printf("S3 bucket %q ready\n", name)
+	}
+	return nil
 }
 
 func NewClient() (*Client, error) {
@@ -32,10 +65,10 @@ func NewClient() (*Client, error) {
 	creds := credentials.NewStaticCredentialsProvider(accessKey, secretKey, "")
 
 	client := s3.New(s3.Options{
-		BaseEndpoint:       aws.String(endpoint),
-		Credentials:        creds,
-		Region:             "us-east-1",
-		UsePathStyle:       true,
+		BaseEndpoint: aws.String(endpoint),
+		Credentials:  creds,
+		Region:       "us-east-1",
+		UsePathStyle: true,
 	})
 
 	return &Client{s3: client}, nil
@@ -48,8 +81,8 @@ func (c *Client) DeleteBucket(ctx context.Context, bucketName string) error {
 	return err
 }
 
-// EnsureBucket creates the bucket if it does not already exist.
-func (c *Client) EnsureBucket(ctx context.Context, bucketName string) error {
+// EnsureBucketExists creates the bucket if it does not already exist.
+func (c *Client) EnsureBucketExists(ctx context.Context, bucketName string) error {
 	_, err := c.s3.CreateBucket(ctx, &s3.CreateBucketInput{
 		Bucket: aws.String(bucketName),
 	})
