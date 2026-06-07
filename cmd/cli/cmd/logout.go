@@ -29,6 +29,4 @@ var logoutCmd = &cobra.Command{
 
 func init() {
 	rootCmd.AddCommand(logoutCmd)
-
-	logoutCmd.Flags().StringVarP(&serverUrl, "server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 }
