@@ -1,8 +1,17 @@
 package pat
 
-import "github.com/spf13/cobra"
+import (
+	"pushnpray/cmd/cli/prerun"
+
+	"github.com/spf13/cobra"
+)
 
 var PatCmd = &cobra.Command{
-	Use:   "pat",
-	Short: "Manage personal access tokens",
+	Use:               "pat",
+	Short:             "Manage personal access tokens",
+	PersistentPreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
+}
+
+func init() {
+	PatCmd.PersistentFlags().String("server", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 }
