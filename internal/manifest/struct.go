@@ -35,9 +35,8 @@ type S3Service struct {
 }
 
 type Manifest struct {
-	ProjectId     string `toml:"project-id"`
-	RepositoryUrl string `toml:"repository-url"`
-	Server        string `toml:"server,omitempty"`
+	ProjectId string `toml:"project-id"`
+	Server    string `toml:"server,omitempty"`
 
 	Apps struct {
 		Dockerfile []DockerFileApp `toml:"dockerfile,omitempty"`

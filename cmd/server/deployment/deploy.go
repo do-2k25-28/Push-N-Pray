@@ -69,11 +69,11 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
 
 	for _, app := range manifest.Apps.Docker {
-		_apps = append(_apps, &apps.DockerApp{DockerApp: app})
+		_apps = append(_apps, apps.NewDockerApp(app))
 	}
 
 	for _, app := range manifest.Apps.Dockerfile {
-		_apps = append(_apps, &apps.DockerfileApp{DockerFileApp: app})
+		_apps = append(_apps, apps.NewDockerFileApp(app, workspaceDir))
 	}
 
 	for _, app := range _apps {

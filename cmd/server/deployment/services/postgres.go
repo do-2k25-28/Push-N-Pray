@@ -17,11 +17,11 @@ type PostgresService struct {
 	Manifest manifest.PostgresService
 }
 
-func (s *PostgresService) containerName(projectId string) string {
+func (s PostgresService) containerName(projectId string) string {
 	return "postgres-" + projectId + "-" + s.Manifest.Name
 }
 
-func (s *PostgresService) volumeName(projectId string) string {
+func (s PostgresService) volumeName(projectId string) string {
 	return "postgres-" + s.Manifest.Name + "-" + projectId
 }
 
@@ -34,7 +34,7 @@ func getServiceDataFromDatabase(projectId string, name string) (*models.Postgres
 	return &service, nil
 }
 
-func (s *PostgresService) IsDeployed(ctx context.Context, manifest manifest.Manifest) (bool, error) {
+func (s PostgresService) IsDeployed(ctx context.Context, manifest manifest.Manifest) (bool, error) {
 	// TODO!: use container presence as a source of truth, not the database
 
 	var v int64
@@ -48,7 +48,7 @@ func (s *PostgresService) IsDeployed(ctx context.Context, manifest manifest.Mani
 }
 
 // Only thing required by the postgres service is a persistent docker volume and a set of credentials
-func (s *PostgresService) Prepare(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
+func (s PostgresService) Prepare(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest) error {
 	// Create volume for postgres
 	err := client.CreateVolumeIfNotExist(ctx, s.volumeName(manifest.ProjectId), map[string]string{})
 	if err != nil {
@@ -65,7 +65,7 @@ func (s *PostgresService) Prepare(ctx context.Context, client *dockerw.Client, m
 	}).Error
 }
 
-func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest, network dockerw.ContainerNetwork) error {
+func (s PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest, network dockerw.ContainerNetwork) error {
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return err
@@ -85,7 +85,7 @@ func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, ma
 	return client.RunContainerFromConfig(ctx, container)
 }
 
-func (s *PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error) {
+func (s PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error) {
 	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return nil, err
