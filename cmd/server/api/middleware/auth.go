@@ -5,6 +5,7 @@ import (
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/utils"
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 )
@@ -57,10 +58,17 @@ func Auth() gin.HandlerFunc {
 
 			// Check PAT
 			var token struct {
-				ID string
+				ID        string
+				ExpiresAt *time.Time
 			}
-			if err := database.GetDB().Table("personal_access_tokens").Select("id").Where("owner = ? AND hash = ?", user.ID, password).Scan(&token).Error; err != nil || token.ID == "" {
+			if err := database.GetDB().Table("personal_access_tokens").Select("id", "expires_at").Where("owner = ? AND hash = ?", user.ID, password).Scan(&token).Error; err != nil || token.ID == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid personal access token"})
+				c.Abort()
+				return
+			}
+
+			if token.ExpiresAt.Before(time.Now()) {
+				c.JSON(http.StatusUnauthorized, gin.H{"error": "Personal access token expired"})
 				c.Abort()
 				return
 			}
