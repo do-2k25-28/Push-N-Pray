@@ -22,7 +22,6 @@ type Service struct {
 
 type PostgresService struct {
 	Service
-	Version string `toml:"version"`
 }
 
 type RedisService struct {
