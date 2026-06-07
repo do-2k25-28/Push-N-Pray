@@ -40,6 +40,7 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 	}
 
 	// Manage dockerfile apps in the manifest
+	apps := make([]docker.DeployableApp, 0, len(m.Apps.Dockerfile)+len(m.Apps.Docker))
 	for _, app := range m.Apps.Dockerfile {
 		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
 		imageName := fmt.Sprintf("%s-image", containerName)
@@ -133,8 +134,6 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 			return fmt.Errorf(errFmtAppRunFailed+": %w", app.Name, err)
 		}
 	}
-
-	// Manage docker apps in the manifest
 	for _, app := range m.Apps.Docker {
 		containerName := fmt.Sprintf("%s-%s-%s", app.Name, projectSlug, projectID)
 		fmt.Printf("Deploying Docker image app: %s\n", app.Name)
@@ -146,7 +145,6 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 		}
 	}
 
-	// Manage S3 services
 	for _, svc := range m.Services.S3 {
 		s3svc := services.NewS3Service(svc, s.cephEndpoint)
 		deployed, err := s3svc.IsDeployed(ctx, projectID, *m)
@@ -164,4 +162,14 @@ func (s *DeployService) DeployProject(projectSlug string, projectID string, m *m
 	}
 
 	return nil
+}
+
+func runApps(ctx context.Context, client docker.Client, apps []docker.DeployableApp) error {
+	var deployErrors []error
+	for _, app := range apps {
+		if err := app.RunContainer(ctx, client); err != nil {
+			deployErrors = append(deployErrors, err)
+		}
+	}
+	return errors.Join(deployErrors...)
 }

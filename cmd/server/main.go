@@ -1,24 +1,16 @@
 package main
 
 import (
-	"context"
 	"log"
 	"os"
 
 	"pushnpray/cmd/server/api/routes"
 	"pushnpray/cmd/server/database"
-	"pushnpray/cmd/server/deployment"
 	"pushnpray/cmd/server/utils"
 )
 
 func main() {
 	database.InitDB()
-
-	ctx := context.Background()
-
-	if err := deployment.Init(ctx); err != nil {
-		log.Fatalf("Failed to initialize deployment service: %v", err)
-	}
 
 	router := routes.NewRouter()
 
