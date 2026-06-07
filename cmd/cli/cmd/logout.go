@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"fmt"
+	"pushnpray/internal/session"
 
 	"github.com/spf13/cobra"
 )
@@ -10,11 +11,24 @@ var logoutCmd = &cobra.Command{
 	Use:   "logout",
 	Short: "Clear the current session",
 	Long:  "Remove stored access and refresh tokens to prevent further authenticated calls.",
-	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("logout called")
+	RunE: func(cmd *cobra.Command, args []string) error {
+		deleted, err := session.DeleteSession(serverUrl)
+		if err != nil {
+			return err
+		}
+
+		if !deleted {
+			return fmt.Errorf("no session found for this server")
+		}
+
+		fmt.Println("Logged out.")
+		return nil
 	},
+	SilenceUsage: true,
 }
 
 func init() {
 	rootCmd.AddCommand(logoutCmd)
+
+	logoutCmd.Flags().StringVarP(&serverUrl, "server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 }
