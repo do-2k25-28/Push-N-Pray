@@ -68,6 +68,11 @@ type Project struct {
 	UpdatedAt     string `json:"updatedAt"`
 }
 
+// ListProjectsResponse provides a list of projects.
+type ListProjectsResponse struct {
+	Projects []Project `json:"projects"`
+}
+
 // DeployProjectRequest selects a deploy target.
 type DeployProjectRequest struct {
 	Tag    string `json:"tag,omitempty"`
