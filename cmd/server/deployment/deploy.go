@@ -12,7 +12,7 @@ import (
 )
 
 func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), "workingDirectory", workspaceDir)
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
@@ -83,6 +83,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 
 	for _, app := range manifest.Apps.Dockerfile {
 		_apps = append(_apps, apps.NewDockerFileApp(app, workspaceDir))
+	}
+
+	for _, app := range manifest.Apps.StaticWeb {
+		_apps = append(_apps, apps.NewStaticWebApp(app))
 	}
 
 	for _, app := range _apps {
