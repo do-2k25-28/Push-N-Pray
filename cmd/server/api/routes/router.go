@@ -23,17 +23,11 @@ func NewRouter() *gin.Engine {
 
 	// PAT
 	tokens := router.Group("/v1/tokens")
-	router.Use(middleware.Auth())
+	tokens.Use(middleware.Auth())
 
-	tokens.GET("", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
-	tokens.POST("", func(c *gin.Context) {
-		c.Status(http.StatusOK)
-	})
-	tokens.DELETE("/:tokenId", func(c *gin.Context) {
-		c.Status(http.StatusNoContent)
-	})
+	tokens.GET("", ListTokens)
+	tokens.POST("", CreateToken)
+	tokens.DELETE("/:tokenId", DeleteToken)
 
 	// Projects
 	projects := router.Group("/v1/projects")
