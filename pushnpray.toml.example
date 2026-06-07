@@ -9,5 +9,3 @@ image = "docker.io/library/nginx:latest"
 [services]
 [[services.s3]]
 name = "storage"
-access-key = "my-access-key"
-secret-key = "my-secret-key"

@@ -8,6 +8,7 @@ import (
 
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
+	cephinfra "pushnpray/infrastructure/ceph"
 	s3infra "pushnpray/infrastructure/s3"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
@@ -52,7 +53,7 @@ func (s *S3Service) Prepare(ctx context.Context, docker *dockerw.Client, m manif
 	accessKey := rand.Text()
 	secretKey := rand.Text()
 
-	if err := s3infra.CreateCephUser(ctx, docker, s.userID(m.ProjectId), accessKey, secretKey); err != nil {
+	if err := cephinfra.CreateUser(ctx, docker, s.userID(m.ProjectId), accessKey, secretKey); err != nil {
 		return fmt.Errorf("create Ceph user: %w", err)
 	}
 
