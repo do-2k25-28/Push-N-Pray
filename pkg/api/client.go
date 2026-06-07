@@ -195,20 +195,6 @@ func (c *Client) GetProject(ctx context.Context, projectID string) (*Project, er
 	return &resp, nil
 }
 
-func (c *Client) ListProjects(ctx context.Context) (*ListProjectsResponse, error) {
-	req, err := c.newRequest(ctx, http.MethodGet, "projects", nil)
-	if err != nil {
-		return nil, err
-	}
-
-	var resp ListProjectsResponse
-	if err := c.do(req, &resp); err != nil {
-		return nil, err
-	}
-
-	return &resp, nil
-}
-
 func (c *Client) DeleteProject(ctx context.Context, projectID string) error {
 	path := fmt.Sprintf("projects/%s", url.PathEscape(projectID))
 	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
