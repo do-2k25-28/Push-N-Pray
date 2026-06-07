@@ -18,7 +18,7 @@ func Manifest() CobraPreRun {
 			return err
 		}
 
-		ctx := context.WithValue(cmd.Context(), ManifestContextKey, man)
+		ctx := context.WithValue(cmd.Context(), ManifestContextKey, &man)
 		cmd.SetContext(ctx)
 
 		return nil

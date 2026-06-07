@@ -39,9 +39,8 @@ var initCmd = &cobra.Command{
 		fmt.Println("Project created")
 
 		man := manifest.Manifest{
-			ProjectId:     projectResponse.ID,
-			RepositoryUrl: repositoryURL,
-			Server:        prerun.GetServer(cmd.Context()),
+			ProjectId: projectResponse.ID,
+			Server:    prerun.GetServer(cmd.Context()),
 		}
 
 		data, err := manifest.Marshal(man)

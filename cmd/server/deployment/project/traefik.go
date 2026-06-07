@@ -1,10 +1,10 @@
-package container
+package project
 
 import "fmt"
 
 const traefikNet = "traefik"
 
-func traefikLabels(containerName, appName, projectSlug, projectID string) map[string]string {
+func TraefikLabels(containerName, appName, projectSlug, projectID string) map[string]string {
 	domain := fmt.Sprintf("%s-%s-%s.pushnpray.polydo.dev", appName, projectSlug, projectID)
 	return map[string]string{
 		"traefik.enable":         "true",

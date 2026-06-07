@@ -6,9 +6,9 @@ require github.com/spf13/cobra v1.10.2
 
 require (
 	github.com/alexedwards/argon2id v1.0.0
+	github.com/containerd/errdefs v1.0.0
 	github.com/docker/go-sdk/container v0.1.0-alpha015
 	github.com/docker/go-sdk/image v0.1.0-alpha015
-	github.com/docker/go-sdk/network v0.1.0-alpha013
 	github.com/gin-gonic/gin v1.12.0
 	github.com/go-git/go-git/v5 v5.19.1
 	github.com/golang-jwt/jwt/v5 v5.3.1
@@ -28,7 +28,6 @@ require (
 	github.com/caarlos0/env/v11 v11.3.1 // indirect
 	github.com/cenkalti/backoff/v4 v4.2.1 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
-	github.com/containerd/errdefs v1.0.0 // indirect
 	github.com/containerd/errdefs/pkg v0.3.0 // indirect
 	github.com/containerd/log v0.1.0 // indirect
 	github.com/containerd/platforms v0.2.1 // indirect
@@ -38,6 +37,7 @@ require (
 	github.com/docker/go-connections v0.6.0 // indirect
 	github.com/docker/go-sdk/config v0.1.0-alpha013 // indirect
 	github.com/docker/go-sdk/context v0.1.0-alpha013 // indirect
+	github.com/docker/go-sdk/network v0.1.0-alpha013 // indirect
 	github.com/docker/go-units v0.5.0 // indirect
 	github.com/emirpasic/gods v1.18.1 // indirect
 	github.com/felixge/httpsnoop v1.0.4 // indirect

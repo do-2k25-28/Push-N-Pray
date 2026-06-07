@@ -17,21 +17,21 @@ func Marshal(manifest Manifest) ([]byte, error) {
 	return toml.Marshal(manifest)
 }
 
-func Unmarshal(path string) (*Manifest, error) {
+func Unmarshal(path string) (Manifest, error) {
 	data, err := os.ReadFile(path)
 	if err != nil {
-		return nil, err
+		return Manifest{}, err
 	}
 
 	var manifest Manifest
 	err = toml.Unmarshal(data, &manifest)
 	if err != nil {
-		return nil, err
+		return Manifest{}, err
 	}
 
 	if manifest.Server == "" {
 		manifest.Server = defaultServer
 	}
 
-	return &manifest, nil
+	return manifest, nil
 }
