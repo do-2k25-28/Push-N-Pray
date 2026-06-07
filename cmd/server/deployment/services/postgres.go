@@ -17,6 +17,10 @@ type PostgresService struct {
 	Manifest manifest.PostgresService
 }
 
+func (s *PostgresService) containerName(projectId string) string {
+	return "postgres-" + projectId + "-" + s.Manifest.Name
+}
+
 func (s *PostgresService) volumeName(projectId string) string {
 	return "postgres-" + s.Manifest.Name + "-" + projectId
 }
@@ -69,7 +73,7 @@ func (s *PostgresService) Deploy(ctx context.Context, client *dockerw.Client, ma
 
 	container := dockerw.ContainerConfig{
 		Image: "docker.io/library/postgres:18.4-alpine3.23",
-		Name:  "postgres-" + manifest.ProjectId + "-" + s.Manifest.Name,
+		Name:  s.containerName(manifest.ProjectId),
 		Env: map[string]string{
 			"POSTGRES_USER":     postgresUser,
 			"POSTGRES_PASSWORD": data.Password,
@@ -96,7 +100,8 @@ func (s *PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]ma
 			labels[app.Name] = map[string]string{
 				prefix + "USER":     postgresUser,
 				prefix + "PASSWORD": data.Password,
-				prefix + "HOST":     "postgres-" + app.Name, // TODO: check if host is resolved by Docker internal DNS
+				prefix + "HOST":     s.containerName(manifest.ProjectId),
+				prefix + "PORT":     "5432",
 			}
 		}
 	}
