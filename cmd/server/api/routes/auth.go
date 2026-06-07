@@ -66,13 +66,13 @@ func Register(c *gin.Context) {
 		RefreshToken: refreshToken.Token,
 	})
 }
-
 func Login(c *gin.Context) {
 	var req pkgapi.LoginRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
 		return
 	}
+
 	if req.Email == "" || req.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
 		return

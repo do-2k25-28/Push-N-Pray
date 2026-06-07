@@ -2,6 +2,7 @@ package middleware
 
 import (
 	"crypto/sha256"
+	"encoding/hex"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/utils"
@@ -58,7 +59,7 @@ func Auth() gin.HandlerFunc {
 			}
 
 			hash := sha256.Sum256([]byte(password))
-			hashString := sha256.Sum256([]byte(hash[:]))
+			hashString := hex.EncodeToString(hash[:])
 
 			// Check PAT
 			var token struct {
@@ -71,7 +72,7 @@ func Auth() gin.HandlerFunc {
 				return
 			}
 
-			if token.ExpiresAt.Before(time.Now()) {
+			if token.ExpiresAt != nil && token.ExpiresAt.Before(time.Now()) {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Personal access token expired"})
 				c.Abort()
 				return
