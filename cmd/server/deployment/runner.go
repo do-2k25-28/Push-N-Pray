@@ -1,14 +1,42 @@
 package deployment
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
 	"path/filepath"
+
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
+	"pushnpray/cmd/server/utils"
+	"pushnpray/internal"
 	"pushnpray/internal/manifest"
 )
+
+var deployService *DeployService
+
+func Init(ctx context.Context) error {
+	cephNetwork, err := utils.InitCephNetwork("pushnpray-ceph")
+	if err != nil {
+		return fmt.Errorf("init ceph network: %w", err)
+	}
+	log.Printf("CEPH network %q ready (subnet %s, monitor %s)", cephNetwork.Name, cephNetwork.Subnet, cephNetwork.MonitorIP)
+
+	docker, err := internal.NewClient(ctx)
+	if err != nil {
+		return fmt.Errorf("create docker client: %w", err)
+	}
+
+	if err := docker.ConnectContainerToNetwork(ctx, "ceph", cephNetwork.Name); err != nil {
+		return fmt.Errorf("connect ceph to network: %w", err)
+	}
+
+	cephEndpoint := fmt.Sprintf("http://%s:8080", cephNetwork.MonitorIP)
+	log.Printf("Ceph endpoint for server: %s", cephEndpoint)
+	deployService = NewDeployService(cephEndpoint)
+	return nil
+}
 
 func RunDeployment(dep models.Deployment, project models.Project, strategy GitFetchStrategy) {
 	reportStatus := func(status models.DeploymentStatus, message string) {
