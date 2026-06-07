@@ -36,6 +36,4 @@ var listCmd = &cobra.Command{
 
 func init() {
 	ProjectCmd.AddCommand(listCmd)
-
-	listCmd.Flags().String("server", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
 }
