@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/exec"
 
 	"github.com/docker/go-sdk/container"
 	tcontainer "github.com/moby/moby/api/types/container"
@@ -61,6 +62,16 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 	}
 
 	return opts
+}
+
+// ExecInContainer runs a command inside a running container and returns an error if the exit code is non-zero.
+func (c *Client) ExecInContainer(ctx context.Context, containerName string, cmd []string) error {
+	args := append([]string{"exec", containerName}, cmd...)
+	out, err := exec.CommandContext(ctx, "docker", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("exec in %s: %w: %s", containerName, err, out)
+	}
+	return nil
 }
 
 func (c *Client) RunContainerFromConfig(ctx context.Context, config ContainerConfig) error {

@@ -31,8 +31,6 @@ type RedisService struct {
 
 type S3Service struct {
 	Service
-	AccessKey string `toml:"access-key"`
-	SecretKey string `toml:"secret-key"`
 }
 
 type Manifest struct {

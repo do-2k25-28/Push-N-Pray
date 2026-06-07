@@ -1,75 +1,131 @@
 # Push'N'Pray
 
-🙏 A platform as a service solution in Go.
+A platform-as-a-service in Go. Declare your apps and services in a `pushnpray.toml` manifest, push to your repository, and Push'N'Pray handles the rest.
 
 ## CLI
 
-Push'N'Pray has a CLI that can installed by running this in your terminal.
+Install the CLI with:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/scripts/install.sh | bash
 ```
 
-## Managed services
+## Manifest
 
-Services are declared in `pushnpray.toml`:
+Every project needs a `pushnpray.toml` at the root of the repository.
 
 ```toml
+project-id = "my-project"
+
+[apps]
+
+# Deploy a pre-built image
+[[apps.docker]]
+name = "api"
+image = "docker.io/myorg/myapp:latest"
+
+# Or build from a Dockerfile
+[[apps.dockerfile]]
+name = "api"
+dockerfile = "Dockerfile"
+context = "."
+
 [services]
 
 [[services.postgres]]
-id = "data"
-version = "18"
+name = "db"
+used-by = ["api"]
 
-[[services.redis]]
-id = "cache"
-version = "8"
-
-[[services.s3]]
-id = "s3"
-```
-
-Services are reconciled before application containers are deployed. Each service:
-
-- is reachable from project applications through its `id` as hostname;
-- uses a persistent Docker volume;
-- cannot change type or version after creation;
-- is stopped and removed with its volume when removed from the manifest.
-
-Service IDs must contain only lowercase letters, numbers, and hyphens.
-
-## S3 services
-
-Add an S3 service to your `pushnpray.toml`, with the credentials of your Ceph user:
-
-```toml
-[services]
 [[services.s3]]
 name = "storage"
-access-key = "my-access-key"
-secret-key = "my-secret-key"
+used-by = ["api"]
 ```
 
-On first deploy, Push'N'Pray creates a bucket named `storage-<project-id>` in Ceph and injects the following environment variables into every app:
+`used-by` controls which app containers receive the service's environment variables.
 
-| Variable | Description |
+## Managed services
+
+Services are provisioned before app containers are deployed. On first deploy each service is created; on subsequent deploys the existing service is reused.
+
+### Postgres
+
+Credentials are auto-generated and injected into apps listed in `used-by`:
+
+| Variable | Value |
 |---|---|
-| `S3_STORAGE_ACCESS_KEY` | Access key |
-| `S3_STORAGE_SECRET_KEY` | Secret key |
-| `S3_STORAGE_BUCKET` | Bucket name |
+| `POSTGRES_<NAME>_HOST` | Container hostname |
+| `POSTGRES_<NAME>_PORT` | `5432` |
+| `POSTGRES_<NAME>_USER` | `postgres` |
+| `POSTGRES_<NAME>_PASSWORD` | Auto-generated password |
 
-Use them in your app to talk to the bucket. Example with curl:
+### S3
+
+Push'N'Pray creates a dedicated Ceph RGW user with auto-generated credentials and a bucket named `<name>-<project-id>`. No credentials go in the manifest.
+
+```toml
+[[services.s3]]
+name = "storage"
+used-by = ["api"]
+```
+
+The following variables are injected into apps listed in `used-by`:
+
+| Variable | Value |
+|---|---|
+| `S3_<NAME>_ENDPOINT` | `http://ceph:8080` |
+| `S3_<NAME>_ACCESS_KEY` | Auto-generated access key |
+| `S3_<NAME>_SECRET_KEY` | Auto-generated secret key |
+| `S3_<NAME>_BUCKET` | `<name>-<project-id>` |
+
+Example using the injected variables from inside a container:
 
 ```sh
-# Upload a file
+# Upload
 curl -X PUT "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
-  -H "Host: $(echo $S3_STORAGE_ENDPOINT | sed 's|http://||')" \
   --aws-sigv4 "aws:amz:us-east-1:s3" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY" \
   --data "hello world"
 
-# Download it back
+# Download
 curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
   --aws-sigv4 "aws:amz:us-east-1:s3" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
 ```
+
+## Server setup
+
+### `.env`
+
+Docker Compose reads `.env` from the project root. Create it before running `docker compose up`:
+
+```sh
+# .env
+POSTGRES_PASSWORD=<random>
+CEPH_DEMO_ACCESS_KEY=<random>
+CEPH_DEMO_SECRET_KEY=<random>
+```
+
+Generate it in one command:
+
+```sh
+printf 'POSTGRES_PASSWORD=%s\nCEPH_DEMO_ACCESS_KEY=%s\nCEPH_DEMO_SECRET_KEY=%s\n' \
+  $(openssl rand -hex 16) \
+  $(openssl rand -hex 16) \
+  $(openssl rand -hex 32) > .env
+```
+
+Then start the stack and the server:
+
+```sh
+docker compose up -d
+make run
+```
+
+### Server environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `CEPH_ENDPOINT` | `http://10.200.0.2:8080` | Ceph RGW endpoint reachable from the server host |
+| `DB_PASSWORD` | `postgres` | Postgres password (must match `POSTGRES_PASSWORD` in `.env`) |
+| `DB_HOST` | `localhost` | Postgres host |
+| `HTTP_PORT` | `4000` | Server port |
