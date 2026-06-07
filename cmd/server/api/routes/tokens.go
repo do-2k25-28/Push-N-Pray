@@ -1,12 +1,13 @@
 package routes
 
 import (
-	"crypto/md5"
+	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -62,9 +63,9 @@ func CreateToken(c *gin.Context) {
 		return
 	}
 
-	tokenBytes := uuid.New().String()
-	hash := md5.Sum([]byte(tokenBytes))
-	tokenHash := hex.EncodeToString(hash[:])
+	tokenString := strings.ReplaceAll(uuid.New().String(), "-", "")
+	hash := sha256.Sum256([]byte(tokenString))
+	hashString := hex.EncodeToString(hash[:])
 
 	var expiresAt *time.Time
 	if req.ExpiresAt != nil {
@@ -75,7 +76,7 @@ func CreateToken(c *gin.Context) {
 	token := models.PersonalAccessToken{
 		ID:        uuid.New().String(),
 		Name:      req.Name,
-		Hash:      tokenHash,
+		Hash:      hashString,
 		Owner:     userID,
 		ExpiresAt: expiresAt,
 		CreatedAt: time.Now(),
@@ -88,7 +89,7 @@ func CreateToken(c *gin.Context) {
 
 	c.JSON(http.StatusOK, gin.H{
 		"id":    token.ID,
-		"token": tokenHash,
+		"token": tokenString,
 	})
 }
 

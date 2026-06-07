@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"crypto/sha256"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/utils"
@@ -56,12 +57,15 @@ func Auth() gin.HandlerFunc {
 				return
 			}
 
+			hash := sha256.Sum256([]byte(password))
+			hashString := sha256.Sum256([]byte(hash[:]))
+
 			// Check PAT
 			var token struct {
 				ID        string
 				ExpiresAt *time.Time
 			}
-			if err := database.GetDB().Table("personal_access_tokens").Select("id", "expires_at").Where("owner = ? AND hash = ?", user.ID, password).Scan(&token).Error; err != nil || token.ID == "" {
+			if err := database.GetDB().Table("personal_access_tokens").Select("id", "expires_at").Where("owner = ? AND hash = ?", user.ID, hashString).Scan(&token).Error; err != nil || token.ID == "" {
 				c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid personal access token"})
 				c.Abort()
 				return
