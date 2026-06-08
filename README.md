@@ -10,30 +10,77 @@ Push'N'Pray has a CLI that can installed by running this in your terminal.
 curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/scripts/install.sh | bash
 ```
 
-## Managed services
+## Manifest
 
-Services are declared in `pushnpray.toml`:
+Services are declared in `pushnpray.toml`. You can find an example [here](./pushnpray.toml.example).
+
+### Applications
+
+Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
+using HTTPS.
+
+> [!NOTE]
+> All files saved to the file system are not kept when updating/redeploying your app. If your app needs data persistence look at [managed services](#managed-services).
+
+#### Dockerfile
+
+The server will be build the given dockerfile in the given context and then deploy it.
+
+Example:
+
+```toml
+[apps]
+[[apps.dockerfile]]
+name = 'my-app'
+dockerfile = 'src/app1/Dockerfile'
+context = 'src/app1/'
+```
+
+### Docker
+
+The server will pull the given image and deploy it.
+
+> [!IMPORTANT]
+> The image needs to be publicly accessible.
+
+Example:
+
+```toml
+[apps]
+[[apps.docker]]
+name = 'my-app'
+image = 'ghcr.io/jdoe/my-app:latest'
+```
+
+### Managed Services
+
+Services are applications that your app may depend on such as Postgres or Redis. They are managed by us (deployment, data persistence).
+
+All managed services require a kind of authentication and some details. For example, Postgres require a database name and a default user/password. These are generated for you and can be injected to your app using environment variables. To avoid leaking secrets, you have to explicitly tell which apps can access these secrets. This is done using the `used-by` which take the list of application names.
+
+In the provided manifest example, we can see that the service `db` (postgres service) is used by the app `backend`. Therefore only the `backend` app will have `db` secrets injected.
+
+> [!NOTE]
+> Since you can deploy multiple instances of the same service, environment variables are following this format `{SERVICE_TYPE}_{SERVICE_NAME}`. For example `POSTGRES_MY_DB`.
+
+### Postgres
+
+The `postgres` service is Postgres version 18.
+
+Example:
 
 ```toml
 [services]
-
 [[services.postgres]]
-id = "data"
-version = "18"
-
-[[services.redis]]
-id = "cache"
-version = "8"
-
-[[services.s3]]
-id = "s3"
+name = 'db'
+used-by = ['backend']
 ```
 
-Services are reconciled before application containers are deployed. Each service:
+Injected variables are:
 
-- is reachable from project applications through its `id` as hostname;
-- uses a persistent Docker volume;
-- cannot change type or version after creation;
-- is stopped and removed with its volume when removed from the manifest.
-
-Service IDs must contain only lowercase letters, numbers, and hyphens.
+| Name                       | Description                           |
+| -------------------------- | ------------------------------------- |
+| `POSTGRES_{NAME}_USER`     | Postgres user to use.                 |
+| `POSTGRES_{NAME}_PASSWORD` | Postgres password to use.             |
+| `POSTGRES_{NAME}_HOST`     | Where to reach the Postgres instance. |
+| `POSTGRES_{NAME}_PORT`     | Port Postgres is listening on.        |
