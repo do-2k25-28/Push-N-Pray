@@ -25,27 +25,32 @@ var loginCmd = &cobra.Command{
 		return nil
 	},
 	RunE: func(cmd *cobra.Command, args []string) error {
-		if password != "" {
-			client, err := api.NewClient(serverUrl)
-			if err != nil {
-				return err
-			}
+		client, err := api.NewClient(serverUrl)
+		if err != nil {
+			return err
+		}
 
+		if password != "" {
 			response, err := client.Login(cmd.Context(), api.LoginRequest{
 				Email:    email,
 				Password: password,
 			})
 
-			fmt.Println("Successfuly logged in.")
-
 			if err != nil {
 				return err
 			}
 
+			fmt.Println("Successfuly logged in.")
+
 			return session.SaveBearerSession(serverUrl, response.AccessToken, response.RefreshToken)
 		}
 
-		return session.SaveClassicSession(serverUrl, email, token)
+		if token != "" {
+			fmt.Println("Token saved.")
+			return session.SaveClassicSession(serverUrl, email, token)
+		}
+
+		return nil
 	},
 	SilenceUsage: true,
 }

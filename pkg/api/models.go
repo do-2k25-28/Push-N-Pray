@@ -37,8 +37,8 @@ type ListPATsResponse struct {
 
 // CreatePATRequest is the payload for creating a PAT.
 type CreatePATRequest struct {
-	Name      string  `json:"name"`
-	ExpiresAt *string `json:"expiresAt"`
+	Name      string `json:"name"`
+	ExpiresAt *int64 `json:"expiresAt"`
 }
 
 // CreatePATResponse holds the created PAT and token value.

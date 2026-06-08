@@ -58,7 +58,14 @@ func InitDB() {
 		log.Fatal("failed to connect database: ", err)
 	}
 
-	if err := dbInstance.AutoMigrate(&models.Project{}, &models.Deployment{}); err != nil {
+	if err := dbInstance.AutoMigrate(
+		&models.User{},
+		&models.RefreshToken{},
+		&models.PersonalAccessToken{},
+		&models.Project{},
+		&models.Deployment{},
+		&models.PostgresService{},
+	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
 }
