@@ -52,11 +52,13 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NET}"
       - "traefik.http.routers.api.rule=Host(`${API_HOST}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.services.api.loadbalancer.server.port=80"
     networks:
       - pushnpray
+      - traefik
 
 volumes:
   postgres:
