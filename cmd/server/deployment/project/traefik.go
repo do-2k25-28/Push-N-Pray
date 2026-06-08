@@ -2,11 +2,18 @@ package project
 
 import (
 	"fmt"
+	"log"
 	"os"
 )
 
 func traefikNet() string {
-	return os.Getenv("TRAEFIK_NET")
+	net := os.Getenv("TRAEFIK_NET")
+
+	if net == "" {
+		log.Fatal("Missing TRAEFIK_NET environment variable.")
+	}
+
+	return net
 }
 
 func TraefikLabels(containerName, appName, projectSlug, projectID string) map[string]string {
