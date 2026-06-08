@@ -14,7 +14,7 @@ cd ~/pushnpray
 Download the `compose.production.yml` from the repository.
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/compose.yml > compose.yml
+curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/compose.production.yml > compose.yml
 ```
 
 Save your Traefik config as `traefik.yml`. See [TLS providers](#tls-providers) more details.
