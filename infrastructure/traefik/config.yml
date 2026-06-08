@@ -1,0 +1,27 @@
+log:
+  level: DEBUG
+ping: true
+providers:
+  docker:
+    exposedbydefault: false
+entryPoints:
+  websecure:
+    address: ":443"
+    http:
+      tls:
+        certresolver: letsencrypt
+        domains:
+          - main: pushnpray.polydo.dev
+            sans:
+              - "*.pushnpray.polydo.dev"
+
+certificatesResolvers:
+  letsencrypt:
+    acme:
+      # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # let's encrypt staging, less rate limiting
+      storage: /etc/traefik/acme/acme.json
+      dnsChallenge:
+        provider: cloudflare
+        resolvers:
+          - 1.1.1.1:53
+          - 1.0.0.1:53
