@@ -1,7 +1,6 @@
 package routes
 
 import (
-	"crypto/subtle"
 	"net/http"
 	"os"
 	"time"
@@ -30,13 +29,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	registerToken := os.Getenv("REGISTER_TOKEN")
-	if registerToken == "" {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Registration token is not configured"})
-		return
-	}
-
-	if req.RegisterToken == "" || subtle.ConstantTimeCompare([]byte(req.RegisterToken), []byte(registerToken)) != 1 {
+	if req.RegisterToken != os.Getenv("REGISTER_TOKEN") {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid registration token"})
 		return
 	}
