@@ -138,6 +138,10 @@ func VerifyAuth() error {
 }
 
 func (sessionConfig *Config) SaveClassicSession(url, email, token string) error {
+	if sessionConfig.SessionExist(url) {
+		return fmt.Errorf("a session already exists for this server")
+	}
+
 	for i := range sessionConfig.Sessions.Classic {
 		if sessionConfig.Sessions.Classic[i].URL == url {
 			sessionConfig.Sessions.Classic[i].URL = url
@@ -157,6 +161,10 @@ func (sessionConfig *Config) SaveClassicSession(url, email, token string) error 
 }
 
 func (sessionConfig *Config) SaveBearerSession(url, accessToken, refreshToken string) error {
+	if sessionConfig.SessionExist(url) {
+		return fmt.Errorf("a session already exists for this server")
+	}
+
 	for i := range sessionConfig.Sessions.Bearer {
 		if sessionConfig.Sessions.Bearer[i].URL == url {
 			sessionConfig.Sessions.Bearer[i].URL = url
@@ -173,6 +181,22 @@ func (sessionConfig *Config) SaveBearerSession(url, accessToken, refreshToken st
 	})
 
 	return sessionConfig.Save()
+}
+
+func (sessionConfig *Config) SessionExist(url string) bool {
+	for _, s := range sessionConfig.Sessions.Classic {
+		if s.URL == url && s.Email != "" && s.Token != "" {
+			return true
+		}
+	}
+
+	for _, s := range sessionConfig.Sessions.Bearer {
+		if s.URL == url && s.AccessToken != "" {
+			return true
+		}
+	}
+
+	return false
 }
 
 func (sessionConfig *Config) DeleteSession(url string) (bool, error) {
