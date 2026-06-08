@@ -59,6 +59,11 @@ type CreateProjectResponse struct {
 	ID string `json:"id"`
 }
 
+// ListProjectsResponse wraps a list of projects.
+type ListProjectsResponse struct {
+	Projects []Project `json:"projects"`
+}
+
 // Project represents a project instance.
 type Project struct {
 	ID            string `json:"id"`
