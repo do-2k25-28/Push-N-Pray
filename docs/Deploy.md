@@ -28,7 +28,7 @@ export PG_USER=pushnpray
 export PG_PASSWORD=<STRONG PASSWORD>
 export PG_DB=pushnpray
 
-export REGISTER_TOKEN=$(openssl rand -hex 32)
+export REGISTER_TOKEN=<SECURE TOKEN>
 
 export TRAEFIK_CONFIG_PATH="~/pushnpray/traefik.yml"
 export TRAEFIK_NET=<AVAILABLE DOCKER NETWORK NAME>
