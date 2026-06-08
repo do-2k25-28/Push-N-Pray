@@ -1,5 +1,5 @@
 .vscode
 .gocache
 bin
-
+dist/
 letsencrypt/
