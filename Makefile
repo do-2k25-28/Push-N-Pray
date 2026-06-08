@@ -1,4 +1,4 @@
-BIN=bin
+BIN=dist
 
 all: clean build-cli build-server
 
