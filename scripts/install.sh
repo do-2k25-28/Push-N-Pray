@@ -14,7 +14,7 @@ if [ "$1" = "-local" ]; then
   mv "$2" "$TARGET"
 else
   echo "Downloading from latest GitHub release"
-  curl -fs -O "$TARGET" https://github.com/do-2k25-28/Push-N-Pray/releases/latest/download/pushnpray-linux-amd64
+  curl -fs -O "$TARGET" https://github.com/do-2k25-28/Push-N-Pray/releases/latest/download/Push-N-Pray-cli-$(uname)-$(uname -m)
   chmod +x "$TARGET"
 fi
 
