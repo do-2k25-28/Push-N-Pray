@@ -17,6 +17,7 @@ USER nonroot:nonroot
 
 COPY --from=builder /out/server /usr/local/bin/push-n-pray
 
+ENV GIN_MODE=release
 EXPOSE 80
 
 ENTRYPOINT ["/usr/local/bin/push-n-pray"]

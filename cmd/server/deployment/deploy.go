@@ -28,6 +28,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		Name:    project.NetworkName(manifest.ProjectId),
 		Aliases: []string{},
 	}
+	traefikNet := dockerw.ContainerNetwork{
+		Name:    project.TraefikNet(),
+		Aliases: []string{},
+	}
 
 	// Handle managed services creation and deletion
 
@@ -89,7 +93,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		)
 
 		config.Name = "app-" + manifest.ProjectId + "-" + app.AppName()
-		config.Networks = []dockerw.ContainerNetwork{network}
+		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
 			config.Labels,
 			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),

@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-func traefikNet() string {
+func TraefikNet() string {
 	net := os.Getenv("TRAEFIK_NET")
 
 	if net == "" {
@@ -20,7 +20,7 @@ func TraefikLabels(containerName, appName, projectSlug, projectID string) map[st
 	domain := fmt.Sprintf("%s-%s-%s.pushnpray.polydo.dev", appName, projectSlug, projectID)
 	return map[string]string{
 		"traefik.enable":         "true",
-		"traefik.docker.network": traefikNet(),
+		"traefik.docker.network": TraefikNet(),
 		fmt.Sprintf("traefik.http.routers.%s.rule", containerName):             fmt.Sprintf("Host(`%s`)", domain),
 		fmt.Sprintf("traefik.http.routers.%s.entrypoints", containerName):      "websecure",
 		fmt.Sprintf("traefik.http.routers.%s.tls", containerName):              "true",

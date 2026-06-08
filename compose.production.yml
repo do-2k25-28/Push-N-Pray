@@ -12,7 +12,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${TRAEFIK_CONFIG_PATH}:/etc/traefik/traefik.yml:ro
+      - ./${TRAEFIK_CONFIG_PATH}:/etc/traefik/traefik.yml:ro
       - traefik_certificates:/etc/traefik/acme
     env_file:
       - traefik.env
@@ -52,11 +52,13 @@ services:
         condition: service_healthy
     labels:
       - "traefik.enable=true"
+      - "traefik.docker.network=${TRAEFIK_NET}"
       - "traefik.http.routers.api.rule=Host(`${API_HOST}`)"
       - "traefik.http.routers.api.entrypoints=websecure"
       - "traefik.http.services.api.loadbalancer.server.port=80"
     networks:
       - pushnpray
+      - traefik
 
 volumes:
   postgres:
