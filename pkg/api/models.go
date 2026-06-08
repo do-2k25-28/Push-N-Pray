@@ -8,8 +8,9 @@ type AuthResponse struct {
 
 // RegisterRequest is the payload for account registration.
 type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email         string `json:"email"`
+	Password      string `json:"password"`
+	RegisterToken string `json:"registerToken"`
 }
 
 // LoginRequest is the payload for login.

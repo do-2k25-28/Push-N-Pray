@@ -46,6 +46,7 @@ services:
       DB_NAME: ${PG_DB}
       DB_PORT: 5432
       HTTP_PORT: 80
+      REGISTER_TOKEN: ${REGISTER_TOKEN}
       TRAEFIK_NET: ${TRAEFIK_NET}
     depends_on:
       postgres:
