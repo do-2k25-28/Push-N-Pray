@@ -1,29 +1,4 @@
 services:
-  traefik:
-    image: traefik:v3.7
-    container_name: pushnpray-traefik
-    restart: unless-stopped
-    command:
-      - --providers.docker=true
-      - --providers.docker.exposedbydefault=false
-      - --providers.docker.network=traefik
-
-      - --entrypoints.web.address=:80
-      - --entrypoints.websecure.address=:443
-
-      - --certificatesresolvers.le.acme.email=${TRAEFIK_ACME_EMAIL:-admin@pushnpray.polydo.dev}
-      - --certificatesresolvers.le.acme.storage=/letsencrypt/acme.json
-      - --certificatesresolvers.le.acme.httpchallenge=true
-      - --certificatesresolvers.le.acme.httpchallenge.entrypoint=web
-    ports:
-      - "80:80"
-      - "443:443"
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ./letsencrypt:/letsencrypt
-    networks:
-      - traefik
-
   postgres:
     image: library/postgres:18.3
     environment:
