@@ -1,6 +1,6 @@
 #!/usr/bin/env sh
 
-set -euo pipefail
+set -eo pipefail
 
 if [ "$(uname -ms)" != "Linux x86_64" ]; then
   echo "Install script only supports Linux x86_64"
@@ -8,15 +8,18 @@ if [ "$(uname -ms)" != "Linux x86_64" ]; then
 fi
 
 TARGET="$HOME/.local/bin/pushnpray"
+mkdir -p $(dirname "$TARGET")
 
 if [ "$1" = "-local" ]; then
   echo "Installing from local file ($2)"
   mv "$2" "$TARGET"
 else
   echo "Downloading from latest GitHub release"
-  curl -fs -O "$TARGET" https://github.com/do-2k25-28/Push-N-Pray/releases/latest/download/Push-N-Pray-cli-$(uname)-$(uname -m)
+  curl -sSL --retry 3 -o "$TARGET" "https://github.com/do-2k25-28/Push-N-Pray/releases/latest/download/Push-N-Pray-cli-$(uname)-$(uname -m)"
   chmod +x "$TARGET"
 fi
+
+echo "Installed Push'N'Pray CLI to $(dirname $TARGET), make sure it is in your PATH"
 
 case $(basename "$SHELL") in
 bash)
