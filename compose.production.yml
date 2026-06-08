@@ -12,7 +12,7 @@ services:
       - 443:443
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
-      - ${TRAEFIK_CONFIG_PATH}:/etc/traefik/traefik.yml:ro
+      - ./${TRAEFIK_CONFIG_PATH}:/etc/traefik/traefik.yml:ro
       - traefik_certificates:/etc/traefik/acme
     env_file:
       - traefik.env
