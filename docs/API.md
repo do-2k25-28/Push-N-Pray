@@ -55,7 +55,8 @@ Content-Type: application/json
 
 {
   "email": "john.doe@acme.org",
-  "password": "superSecretPassword"
+  "password": "superSecretPassword",
+  "registerToken": "mon_super_hyper_token"
 }
 ```
 
