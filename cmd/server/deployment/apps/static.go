@@ -9,6 +9,10 @@ import (
 	"strings"
 )
 
+type workingDirectoryCtxKeyType int
+
+const WorkingDirectoryContextKey workingDirectoryCtxKeyType = 0
+
 type StaticWebApp struct {
 	manifest.StaticWepApp
 }
@@ -22,7 +26,7 @@ func (app StaticWebApp) AppName() string {
 }
 
 func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
-	cwd := ctx.Value("workingDirectory").(string)
+	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))
 
 	userDockerfile := strings.Replace(dockerfile, userContentKey, app.Path, 1)

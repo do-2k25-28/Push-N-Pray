@@ -12,7 +12,7 @@ import (
 )
 
 func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
-	ctx := context.WithValue(context.Background(), "workingDirectory", workspaceDir)
+	ctx := context.WithValue(context.Background(), apps.WorkingDirectoryContextKey, workspaceDir)
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
