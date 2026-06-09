@@ -12,9 +12,10 @@ curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/m
 
 ## Manifest
 
-Services are declared in `pushnpray.toml`. You can find an example [here](./pushnpray.toml.example).
+The manifest describes your applications and their dependencies (Postgres, ...). It is named `pushnpray.toml` and is located at the root of your repository.
+You can find an example [here](./pushnpray.toml.example).
 
-### Applications
+## Applications
 
 Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
 using HTTPS.
@@ -22,7 +23,7 @@ using HTTPS.
 > [!NOTE]
 > All files saved to the file system are not kept when updating/redeploying your app. If your app needs data persistence look at [managed services](#managed-services).
 
-#### Dockerfile
+### Dockerfile
 
 The server will be build the given dockerfile in the given context and then deploy it.
 
@@ -52,7 +53,22 @@ name = 'my-app'
 image = 'ghcr.io/jdoe/my-app:latest'
 ```
 
-### Managed Services
+### Static website
+
+Use this service to deploy a static website. The server will run a nginx instance.
+
+In the configuration you need to precise in `path` the root folder of your static web app. All files in this folder wil be statically served.
+
+Example:
+
+```toml
+[apps]
+[[apps.static]]
+name = 'my-app'
+path = 'src/webapp'
+```
+
+## Managed Services
 
 Services are applications that your app may depend on such as Postgres or Redis. They are managed by us (deployment, data persistence).
 
