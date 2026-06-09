@@ -18,6 +18,7 @@ type ContainerNetwork struct {
 }
 
 type HealthConfig = tcontainer.HealthConfig
+type RestartPolicy = tcontainer.RestartPolicy
 
 type ContainerConfig struct {
 	Image    string
@@ -28,6 +29,8 @@ type ContainerConfig struct {
 	Cmd      []string
 	// Healthcheck uses Docker's native HEALTHCHECK support.
 	Healthcheck *tcontainer.HealthConfig
+	// RestartPolicy defaults to unless-stopped when unset.
+	RestartPolicy *tcontainer.RestartPolicy
 	// ExposedPorts format: "8080/tcp".
 	ExposedPorts []string
 	VolumeBinds  []string
@@ -52,6 +55,10 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		opts = append(opts, container.WithCmd(cfg.Cmd...))
 	}
 
+	opts = append(opts, container.WithAdditionalHostConfigModifier(func(hostConfig *tcontainer.HostConfig) {
+		hostConfig.RestartPolicy = restartPolicyOrDefault(cfg.RestartPolicy)
+	}))
+
 	if cfg.Healthcheck != nil {
 		opts = append(opts, container.WithAdditionalConfigModifier(func(config *tcontainer.Config) {
 			config.Healthcheck = cfg.Healthcheck
@@ -69,6 +76,14 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 	}
 
 	return opts
+}
+
+func restartPolicyOrDefault(policy *tcontainer.RestartPolicy) tcontainer.RestartPolicy {
+	if policy != nil {
+		return *policy
+	}
+
+	return tcontainer.RestartPolicy{Name: tcontainer.RestartPolicyUnlessStopped}
 }
 
 // ExecInContainer runs a command inside a running container and returns an error if the exit code is non-zero.
