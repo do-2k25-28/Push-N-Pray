@@ -6,10 +6,10 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
-	"pushnpray/internal/ceph"
 )
 
 func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {

@@ -1,9 +1,9 @@
 package ceph
 
 import (
-	"os"
-	"log"
 	"context"
+	"log"
+	"os"
 	"pushnpray/internal/dockerw"
 )
 
@@ -31,4 +31,3 @@ func GetCephEndpoint() string {
 	log.Printf("Ceph endpoint: %s", ceph_endpoint)
 	return ceph_endpoint
 }
-
