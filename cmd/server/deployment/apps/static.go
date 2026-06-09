@@ -2,7 +2,6 @@ package apps
 
 import (
 	"context"
-	"fmt"
 	"os"
 	"path"
 	"pushnpray/internal/dockerw"
@@ -27,9 +26,6 @@ func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, man
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))
 
 	userDockerfile := strings.Replace(dockerfile, userContentKey, app.Path, 1)
-
-	fmt.Println(dockerfilePath)
-	fmt.Println(userDockerfile)
 
 	if err := os.WriteFile(dockerfilePath, []byte(userDockerfile), 0644); err != nil {
 		return err
