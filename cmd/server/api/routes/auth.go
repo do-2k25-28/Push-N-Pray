@@ -2,6 +2,7 @@ package routes
 
 import (
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -25,6 +26,11 @@ func Register(c *gin.Context) {
 	}
 	if req.Email == "" || req.Password == "" {
 		c.JSON(http.StatusBadRequest, gin.H{"error": ErrInvalidBody})
+		return
+	}
+
+	if req.RegisterToken != os.Getenv("REGISTER_TOKEN") {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "Invalid registration token"})
 		return
 	}
 

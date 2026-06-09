@@ -10,6 +10,10 @@ import (
 )
 
 func main() {
+	if os.Getenv("REGISTER_TOKEN") == "" {
+		log.Fatal("Missing REGISTER_TOKEN environment variable.")
+	}
+
 	database.InitDB()
 
 	router := routes.NewRouter()

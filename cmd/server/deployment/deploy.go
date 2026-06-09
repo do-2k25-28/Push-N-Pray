@@ -47,6 +47,11 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		_services = append(_services, services.NewS3Service(service, ceph.GetCephEndpoint()))
 	}
 
+	for _, service := range manifest.Services.Redis {
+		redis := services.RedisService{Manifest: service}
+		_services = append(_services, &redis)
+	}
+
 	for _, service := range _services {
 		deployed, err := service.IsDeployed(ctx, manifest)
 		if err != nil {

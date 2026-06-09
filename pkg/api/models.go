@@ -8,8 +8,9 @@ type AuthResponse struct {
 
 // RegisterRequest is the payload for account registration.
 type RegisterRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+	Email         string `json:"email"`
+	Password      string `json:"password"`
+	RegisterToken string `json:"registerToken"`
 }
 
 // LoginRequest is the payload for login.
@@ -56,6 +57,11 @@ type CreateProjectRequest struct {
 // CreateProjectResponse holds the created project ID.
 type CreateProjectResponse struct {
 	ID string `json:"id"`
+}
+
+// ListProjectsResponse wraps a list of projects.
+type ListProjectsResponse struct {
+	Projects []Project `json:"projects"`
 }
 
 // Project represents a project instance.
