@@ -11,7 +11,7 @@ var listCmd = &cobra.Command{
 	Use:     "list",
 	Short:   "List projects",
 	Long:    "List every project owned by the authenticated user.",
-	PreRunE: prerun.Combine(prerun.Auth(), prerun.Manifest(), prerun.ApiClientFromManifest()),
+	PreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		client := prerun.GetApiClient(cmd.Context())
 
