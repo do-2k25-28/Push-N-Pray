@@ -9,15 +9,8 @@ import (
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
+	"pushnpray/internal/ceph"
 )
-
-type DeployService struct {
-	cephEndpoint string
-}
-
-func NewDeployService(cephEndpoint string) *DeployService {
-	return &DeployService{cephEndpoint: cephEndpoint}
-}
 
 func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
 	ctx := context.Background()
@@ -51,7 +44,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 		_services = append(_services, &pg)
 	}
 	for _, service := range manifest.Services.S3 {
-		_services = append(_services, services.NewS3Service(service, deployService.cephEndpoint))
+		_services = append(_services, services.NewS3Service(service, ceph.GetCephEndpoint()))
 	}
 
 	for _, service := range _services {

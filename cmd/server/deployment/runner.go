@@ -13,15 +13,6 @@ import (
 
 const defaultCephEndpoint = "http://10.200.0.2:8080"
 
-var deployService = func() *DeployService {
-	ep := os.Getenv("CEPH_ENDPOINT")
-	if ep == "" {
-		ep = defaultCephEndpoint
-	}
-	log.Printf("Ceph endpoint: %s", ep)
-	return NewDeployService(ep)
-}()
-
 func RunDeployment(dep models.Deployment, project models.Project, strategy GitFetchStrategy) {
 	reportStatus := func(status models.DeploymentStatus, message string) {
 		log.Printf("[%s] [%s] %s", project.ID, status, message)

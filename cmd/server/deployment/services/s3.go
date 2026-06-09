@@ -8,7 +8,7 @@ import (
 
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
-	cephinfra "pushnpray/infrastructure/ceph"
+	cephinfra "pushnpray/internal/ceph"
 	s3infra "pushnpray/infrastructure/s3"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"

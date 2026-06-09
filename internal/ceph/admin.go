@@ -1,6 +1,8 @@
 package ceph
 
 import (
+	"os"
+	"log"
 	"context"
 	"pushnpray/internal/dockerw"
 )
@@ -17,3 +19,16 @@ func CreateUser(ctx context.Context, docker *dockerw.Client, uid, accessKey, sec
 		"--secret-key=" + secretKey,
 	})
 }
+
+const defaultCephEndpoint = "http://10.200.0.2:8080"
+
+func GetCephEndpoint() string {
+	var ceph_endpoint = os.Getenv("CEPH_ENDPOINT")
+	if ceph_endpoint == "" {
+		log.Printf("No ceph endpoint defined ")
+		ceph_endpoint = defaultCephEndpoint
+	}
+	log.Printf("Ceph endpoint: %s", ceph_endpoint)
+	return ceph_endpoint
+}
+
