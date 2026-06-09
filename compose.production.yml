@@ -41,6 +41,12 @@ services:
     container_name: ceph
     hostname: ceph
     privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "ceph health | grep -qv 'HEALTH_ERR' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
     environment:
       MON_IP: 10.200.0.2
       CEPH_PUBLIC_NETWORK: 10.200.0.0/24
@@ -71,6 +77,8 @@ services:
       CEPH_ENDPOINT: http://ceph:8080
     depends_on:
       postgres:
+        condition: service_healthy
+      ceph:
         condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
