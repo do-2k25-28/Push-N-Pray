@@ -25,10 +25,7 @@ func main() {
 
 	serverPort = utils.FindAvailablePort(serverPort)
 	log.Printf("using port %s", serverPort)
-	err := router.Run(":" + serverPort)
-
-	if err != nil {
+	if err := router.Run(":" + serverPort); err != nil {
 		log.Fatalf("Server failed: %v. Make sure the port %s is available.", err, serverPort)
-		os.Exit(1)
 	}
 }

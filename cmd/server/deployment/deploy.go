@@ -6,6 +6,7 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
@@ -41,6 +42,9 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 	for _, service := range manifest.Services.Postgres {
 		pg := services.PostgresService{Manifest: service}
 		_services = append(_services, &pg)
+	}
+	for _, service := range manifest.Services.S3 {
+		_services = append(_services, services.NewS3Service(service, ceph.GetCephEndpoint()))
 	}
 
 	for _, service := range manifest.Services.Redis {

@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"os/exec"
 
 	"github.com/docker/go-sdk/container"
 	tcontainer "github.com/moby/moby/api/types/container"
@@ -34,10 +35,6 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		container.WithName(cfg.Name),
 	}
 
-	for _, network := range cfg.Networks {
-		opts = append(opts, container.WithNetworkName(network.Aliases, network.Name))
-	}
-
 	if len(cfg.Env) > 0 {
 		opts = append(opts, container.WithEnv(cfg.Env))
 	}
@@ -63,9 +60,26 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 	return opts
 }
 
+// ExecInContainer runs a command inside a running container and returns an error if the exit code is non-zero.
+func (c *Client) ExecInContainer(ctx context.Context, containerName string, cmd []string) error {
+	args := append([]string{"exec", containerName}, cmd...)
+	out, err := exec.CommandContext(ctx, "docker", args...).CombinedOutput()
+	if err != nil {
+		return fmt.Errorf("exec in %s: %w: %s", containerName, err, out)
+	}
+	return nil
+}
+
 func (c *Client) RunContainerFromConfig(ctx context.Context, config ContainerConfig) error {
-	_, err := container.Run(ctx, c.containerOptions(config)...)
-	return err
+	if _, err := container.Run(ctx, c.containerOptions(config)...); err != nil {
+		return err
+	}
+	for _, net := range config.Networks {
+		if err := c.ConnectContainerToNetwork(ctx, config.Name, net.Name); err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 func (c *Client) listContainersByPattern(ctx context.Context, pattern string) ([]tcontainer.Summary, error) {

@@ -1,10 +1,10 @@
 # Push'N'Pray
 
-🙏 A platform as a service solution in Go.
+A platform-as-a-service in Go. Declare your apps and services in a `pushnpray.toml` manifest, push to your repository, and Push'N'Pray handles the rest.
 
 ## CLI
 
-Push'N'Pray has a CLI that can installed by running this in your terminal.
+Install the CLI with:
 
 ```sh
 curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/scripts/install.sh | bash
@@ -84,3 +84,38 @@ Injected variables are:
 | `POSTGRES_{NAME}_PASSWORD` | Postgres password to use.             |
 | `POSTGRES_{NAME}_HOST`     | Where to reach the Postgres instance. |
 | `POSTGRES_{NAME}_PORT`     | Port Postgres is listening on.        |
+
+### S3
+
+Push'N'Pray creates a dedicated Ceph RGW user with auto-generated credentials and a bucket named `<name>-<project-id>`. No credentials go in the manifest.
+
+```toml
+[[services.s3]]
+name = "storage"
+used-by = ["api"]
+```
+
+The following variables are injected into apps listed in `used-by`:
+
+| Variable                 | Description            |
+|--------------------------|------------------------|
+| `S3_{NAME}_ENDPOINT`     | Ceph container GW      |
+| `S3_{NAME}_ACCESS_KEY`   | Ceph bucket access key |
+| `S3_{NAME}_SECRET_KEY`   | Ceph bucket secret key |
+| `S3_{NAME}_BUCKET`       | Ceph bucket name       |
+
+Example using the injected variables from inside a container:
+
+```sh
+# Upload
+curl -X PUT "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
+  --aws-sigv4 "aws:amz:us-east-1:s3" \
+  --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY" \
+  --data "hello world"
+
+# Download
+curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
+  --aws-sigv4 "aws:amz:us-east-1:s3" \
+  --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
+```
+
