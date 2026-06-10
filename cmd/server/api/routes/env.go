@@ -19,13 +19,18 @@ func GetProjectEnv(c *gin.Context) {
 	}
 
 	type envVarResponse struct {
-		Name  string `json:"name"`
-		Value string `json:"value"`
+		Name   string  `json:"name"`
+		Value  *string `json:"value,omitempty"`
+		Secret bool    `json:"secret,omitempty"`
 	}
 
 	variables := make([]envVarResponse, 0, len(records))
 	for _, r := range records {
-		variables = append(variables, envVarResponse{Name: r.Name, Value: r.Value})
+		v := envVarResponse{Name: r.Name, Secret: r.Secret}
+		if !r.Secret {
+			v.Value = &r.Value
+		}
+		variables = append(variables, v)
 	}
 
 	c.JSON(http.StatusOK, gin.H{"variables": variables})
@@ -54,8 +59,9 @@ func DeleteProjectEnv(c *gin.Context) {
 
 type setEnvRequest struct {
 	Variables []struct {
-		Name  string `json:"name"  binding:"required"`
-		Value string `json:"value"`
+		Name   string `json:"name"  binding:"required"`
+		Value  string `json:"value"`
+		Secret bool   `json:"secret"`
 	} `json:"variables" binding:"required"`
 }
 
@@ -74,6 +80,7 @@ func SetProjectEnv(c *gin.Context) {
 			Project: project.ID,
 			Name:    v.Name,
 			Value:   v.Value,
+			Secret:  v.Secret,
 		})
 	}
 
