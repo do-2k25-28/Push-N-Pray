@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"pushnpray/internal/dockerw"
+	"time"
 )
 
 type RollingUpdateStrategy struct{}
@@ -18,6 +19,8 @@ func (s RollingUpdateStrategy) UpdateContainer(ctx context.Context, docker *dock
 	if err := docker.RunContainerFromConfig(ctx, newContainer); err != nil {
 		return err
 	}
+
+	time.Sleep(30 * time.Second)
 
 	log.Printf("Stopping containers matching %s\n", pattern)
 	if err := docker.StopContainers(ctx, existingContainers); err != nil {
