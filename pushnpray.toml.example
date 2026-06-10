@@ -1,4 +1,5 @@
 project-id = 'fd2c7a27-8e47-46a0-bc01-622c12ac8c83'
+app-update-strategy = 'recreate'
 
 [apps]
 [[apps.docker]]

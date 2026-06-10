@@ -15,6 +15,19 @@ curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/m
 The manifest describes your applications and their dependencies (Postgres, ...). It is named `pushnpray.toml` and is located at the root of your repository.
 You can find an example [here](./pushnpray.toml.example).
 
+### App update strategy
+
+The `app-update-strategy` field controls how application containers are replaced during redeployments. It defaults to `recreate`.
+
+```toml
+app-update-strategy = 'recreate'
+```
+
+Available strategies:
+
+- `recreate`: stop and remove current app containers, then create and start the new containers.
+- `blue-green`: start new containers with deployment-specific names, then stop and remove previous app containers.
+
 ## Applications
 
 Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
@@ -134,4 +147,3 @@ curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
   --aws-sigv4 "aws:amz:us-east-1:s3" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
 ```
-
