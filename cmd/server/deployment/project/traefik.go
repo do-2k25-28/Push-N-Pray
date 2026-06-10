@@ -16,8 +16,16 @@ func TraefikNet() string {
 	return net
 }
 
-func TraefikLabels(containerName, appName, projectSlug, projectID string) map[string]string {
-	domain := fmt.Sprintf("%s-%s-%s.pushnpray.polydo.dev", appName, projectSlug, projectID)
+func ExternalDomain(appName, projectSlug, projectId string) string {
+	tld := os.Getenv("EXTERNAL_DOMAIN")
+	if tld == "" {
+		tld = "pushnpray.polydo.dev"
+	}
+
+	return fmt.Sprintf("%s-%s-%s.%s", appName, projectSlug, projectId, tld)
+}
+
+func TraefikLabels(containerName, domain string) map[string]string {
 	return map[string]string{
 		"traefik.enable":         "true",
 		"traefik.docker.network": TraefikNet(),

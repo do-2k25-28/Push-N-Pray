@@ -82,6 +82,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
 
 	containerNames := map[string]string{}
+	appDomains := map[string]string{}
 
 	for _, app := range manifest.Apps.Docker {
 		_apps = append(_apps, apps.NewDockerApp(app))
@@ -96,10 +97,14 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 	}
 
 	for _, app := range _apps {
+		// Container host
 		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
 		name := prefix + "-" + deploymentID
 
 		containerNames[app.AppName()] = name
+
+		// External domain
+		appDomains[app.AppName()] = project.ExternalDomain(app.AppName(), projectSlug, manifest.ProjectId)
 	}
 
 	for _, app := range _apps {
@@ -126,14 +131,14 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 		config.Labels = utils.MergeMap(
 			config.Labels,
-			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
+			project.TraefikLabels(config.Name, appDomains[app.AppName()]),
 		)
 
 		if app.GetAllowOriginFrom() != "" {
 			config.Labels = utils.MergeMap(
 				config.Labels,
 				project.TraefikCors(project.CorsSettings{
-					AllowOrigin: containerNames[app.GetAllowOriginFrom()],
+					AllowOrigin: appDomains[app.GetAllowOriginFrom()],
 				}),
 			)
 		}
