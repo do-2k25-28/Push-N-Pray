@@ -43,7 +43,7 @@ func GetAppLogs(c *gin.Context) {
 		fw.flusher = flusher
 	}
 
-	_,err = stdcopy.StdCopy(fw, fw, reader)
+	_, err = stdcopy.StdCopy(fw, fw, reader)
 	if err != nil {
 		return
 	}
