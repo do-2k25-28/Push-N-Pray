@@ -13,27 +13,21 @@ import (
 	"pushnpray/internal/utils"
 )
 
-func DeployProject(projectSlug string, projectManifest manifest.Manifest, workspaceDir, deploymentID string) error {
+func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir, deploymentID string) error {
 	ctx := context.WithValue(context.Background(), apps.WorkingDirectoryContextKey, workspaceDir)
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
 	}
-	if projectManifest.AppUpdateStrategy == "" {
-		projectManifest.AppUpdateStrategy = manifest.AppUpdateStrategyRecreate
-	}
-	if projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyRecreate && projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyRolling {
-		return fmt.Errorf("unknown app update strategy %q", projectManifest.AppUpdateStrategy)
-	}
 
 	// Create project Docker network
 
-	if err := docker.CreateNetworkIfNotExist(ctx, project.NetworkName(projectManifest.ProjectId)); err != nil {
+	if err := docker.CreateNetworkIfNotExist(ctx, project.NetworkName(manifest.ProjectId)); err != nil {
 		return fmt.Errorf("failed to create project network: %w", err)
 	}
 
 	network := dockerw.ContainerNetwork{
-		Name:    project.NetworkName(projectManifest.ProjectId),
+		Name:    project.NetworkName(manifest.ProjectId),
 		Aliases: []string{},
 	}
 	traefikNet := dockerw.ContainerNetwork{
@@ -43,39 +37,39 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 
 	// Handle managed services creation and deletion
 
-	_services := make([]services.ManagedService, 0, projectManifest.GetServiceCount())
+	_services := make([]services.ManagedService, 0, manifest.GetServiceCount())
 	envsFromServices := []map[string]map[string]string{}
 
-	for _, service := range projectManifest.Services.Postgres {
+	for _, service := range manifest.Services.Postgres {
 		pg := services.PostgresService{Manifest: service}
 		_services = append(_services, &pg)
 	}
-	for _, service := range projectManifest.Services.S3 {
+	for _, service := range manifest.Services.S3 {
 		_services = append(_services, services.NewS3Service(service, ceph.GetCephEndpoint()))
 	}
 
-	for _, service := range projectManifest.Services.Redis {
+	for _, service := range manifest.Services.Redis {
 		redis := services.RedisService{Manifest: service}
 		_services = append(_services, &redis)
 	}
 
 	for _, service := range _services {
-		deployed, err := service.IsDeployed(ctx, projectManifest)
+		deployed, err := service.IsDeployed(ctx, manifest)
 		if err != nil {
 			return err
 		}
 
 		if !deployed {
-			if err := service.Prepare(ctx, docker, projectManifest); err != nil {
+			if err := service.Prepare(ctx, docker, manifest); err != nil {
 				return fmt.Errorf("filed to prepare deployment of service")
 			}
 
-			if err := service.Deploy(ctx, docker, projectManifest, network); err != nil {
+			if err := service.Deploy(ctx, docker, manifest, network); err != nil {
 				return fmt.Errorf("failed to deploy service")
 			}
 		}
 
-		env, err := service.EnvToInject(projectManifest)
+		env, err := service.EnvToInject(manifest)
 		if err != nil {
 			return err
 		}
@@ -85,42 +79,42 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 	appToEnv := utils.MergeMaps(envsFromServices)
 
 	// Deploy or update application containers
-	_apps := make([]apps.DeployableApp, 0, projectManifest.GetApplicationCount())
+	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
 
-	for _, app := range projectManifest.Apps.Docker {
+	for _, app := range manifest.Apps.Docker {
 		_apps = append(_apps, apps.NewDockerApp(app))
 	}
 
-	for _, app := range projectManifest.Apps.Dockerfile {
+	for _, app := range manifest.Apps.Dockerfile {
 		_apps = append(_apps, apps.NewDockerFileApp(app, workspaceDir))
 	}
 
-	for _, app := range projectManifest.Apps.StaticWeb {
+	for _, app := range manifest.Apps.StaticWeb {
 		_apps = append(_apps, apps.NewStaticWebApp(app))
 	}
 
 	for _, app := range _apps {
-		if err := app.Prepare(ctx, docker, projectManifest); err != nil {
+		if err := app.Prepare(ctx, docker, manifest); err != nil {
 			return err
 		}
 
-		config := app.ContainerConfig(ctx, projectManifest)
+		config := app.ContainerConfig(ctx, manifest)
 
 		config.Env = utils.MergeMap(
 			config.Env,
 			appToEnv[app.AppName()], // Override user defined vars if they overlap
 		)
 
-		prefix := "app-" + projectManifest.ProjectId + "-" + app.AppName()
+		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
 		config.Name = prefix + "-" + deploymentID
 
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
 			config.Labels,
-			project.TraefikLabels(config.Name, app.AppName(), projectSlug, projectManifest.ProjectId),
+			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
 		)
 
-		if err := updates.RunApplicationUpdate(ctx, docker, config, prefix, projectManifest.AppUpdateStrategy); err != nil {
+		if err := updates.RunApplicationUpdate(ctx, docker, config, prefix, manifest.UpdateStrategy); err != nil {
 			return err
 		}
 	}

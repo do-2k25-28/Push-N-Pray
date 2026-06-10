@@ -13,8 +13,8 @@ func Marshal(manifest Manifest) ([]byte, error) {
 	if manifest.Server == defaultServer {
 		manifest.Server = ""
 	}
-	if manifest.AppUpdateStrategy == AppUpdateStrategyRecreate {
-		manifest.AppUpdateStrategy = ""
+	if manifest.UpdateStrategy == UpdateStrategyRecreate {
+		manifest.UpdateStrategy = ""
 	}
 
 	return toml.Marshal(manifest)
@@ -35,8 +35,8 @@ func Unmarshal(path string) (Manifest, error) {
 	if manifest.Server == "" {
 		manifest.Server = defaultServer
 	}
-	if manifest.AppUpdateStrategy == "" {
-		manifest.AppUpdateStrategy = AppUpdateStrategyRecreate
+	if manifest.UpdateStrategy == "" {
+		manifest.UpdateStrategy = UpdateStrategyRecreate
 	}
 
 	return manifest, nil

@@ -1,10 +1,10 @@
 package manifest
 
-type AppUpdateStrategy string
+type UpdateStrategy string
 
 const (
-	AppUpdateStrategyRecreate AppUpdateStrategy = "recreate"
-	AppUpdateStrategyRolling  AppUpdateStrategy = "rolling"
+	UpdateStrategyRecreate UpdateStrategy = "recreate"
+	UpdateStrategyRolling  UpdateStrategy = "rolling"
 )
 
 type App struct {
@@ -46,9 +46,9 @@ type S3Service struct {
 }
 
 type Manifest struct {
-	ProjectId         string            `toml:"project-id"`
-	Server            string            `toml:"server,omitempty"`
-	AppUpdateStrategy AppUpdateStrategy `toml:"app-update-strategy,omitempty"`
+	ProjectId      string         `toml:"project-id"`
+	Server         string         `toml:"server,omitempty"`
+	UpdateStrategy UpdateStrategy `toml:"update-strategy,omitempty"`
 
 	Apps struct {
 		Dockerfile []DockerFileApp `toml:"dockerfile,omitempty"`
