@@ -139,7 +139,9 @@ func VerifyAuth() error {
 
 func (sessionConfig *Config) SaveClassicSession(url, email, token string) error {
 	if sessionConfig.SessionExist(url) {
-		return fmt.Errorf("a session already exists for this server")
+		if _, err := sessionConfig.DeleteSession(url); err != nil {
+			return err
+		}
 	}
 
 	for i := range sessionConfig.Sessions.Classic {
@@ -162,7 +164,9 @@ func (sessionConfig *Config) SaveClassicSession(url, email, token string) error 
 
 func (sessionConfig *Config) SaveBearerSession(url, accessToken, refreshToken string) error {
 	if sessionConfig.SessionExist(url) {
-		return fmt.Errorf("a session already exists for this server")
+		if _, err := sessionConfig.DeleteSession(url); err != nil {
+			return err
+		}
 	}
 
 	for i := range sessionConfig.Sessions.Bearer {
