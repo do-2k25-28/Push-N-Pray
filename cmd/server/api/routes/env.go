@@ -77,6 +77,7 @@ func SetProjectEnv(c *gin.Context) {
 	}
 
 	records := make([]models.EnvVar, 0, len(req.Variables))
+	indexByName := make(map[string]int, len(req.Variables))
 	for _, v := range req.Variables {
 		value := v.Value
 		if v.Secret {
@@ -87,12 +88,18 @@ func SetProjectEnv(c *gin.Context) {
 			}
 			value = encrypted
 		}
-		records = append(records, models.EnvVar{
+		rec := models.EnvVar{
 			Project: project.ID,
 			Name:    v.Name,
 			Value:   value,
 			Secret:  v.Secret,
-		})
+		}
+		if idx, ok := indexByName[v.Name]; ok {
+			records[idx] = rec
+			continue
+		}
+		indexByName[v.Name] = len(records)
+		records = append(records, rec)
 	}
 
 	if len(records) == 0 {
