@@ -15,6 +15,19 @@ curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/m
 The manifest describes your applications and their dependencies (Postgres, ...). It is named `pushnpray.toml` and is located at the root of your repository.
 You can find an example [here](./pushnpray.toml.example).
 
+### App update strategy
+
+The `app-update-strategy` field controls how application containers are replaced during redeployments. It defaults to `recreate`.
+
+```toml
+app-update-strategy = 'recreate'
+```
+
+Available strategies:
+
+- `recreate`: stop and remove current app containers, then create and start the new containers.
+- `rolling`: start new containers and then stop and remove previous app containers.
+
 ## Applications
 
 Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
@@ -113,12 +126,12 @@ used-by = ["api"]
 
 The following variables are injected into apps listed in `used-by`:
 
-| Variable                 | Description            |
-|--------------------------|------------------------|
-| `S3_{NAME}_ENDPOINT`     | Ceph container GW      |
-| `S3_{NAME}_ACCESS_KEY`   | Ceph bucket access key |
-| `S3_{NAME}_SECRET_KEY`   | Ceph bucket secret key |
-| `S3_{NAME}_BUCKET`       | Ceph bucket name       |
+| Variable               | Description            |
+| ---------------------- | ---------------------- |
+| `S3_{NAME}_ENDPOINT`   | Ceph container GW      |
+| `S3_{NAME}_ACCESS_KEY` | Ceph bucket access key |
+| `S3_{NAME}_SECRET_KEY` | Ceph bucket secret key |
+| `S3_{NAME}_BUCKET`     | Ceph bucket name       |
 
 Example using the injected variables from inside a container:
 

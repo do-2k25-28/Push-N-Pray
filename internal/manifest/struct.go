@@ -1,5 +1,12 @@
 package manifest
 
+type UpdateStrategy string
+
+const (
+	UpdateStrategyRecreate UpdateStrategy = "recreate"
+	UpdateStrategyRolling  UpdateStrategy = "rolling"
+)
+
 type App struct {
 	Name string `toml:"name"`
 }
@@ -39,8 +46,9 @@ type S3Service struct {
 }
 
 type Manifest struct {
-	ProjectId string `toml:"project-id"`
-	Server    string `toml:"server,omitempty"`
+	ProjectId      string         `toml:"project-id"`
+	Server         string         `toml:"server,omitempty"`
+	UpdateStrategy UpdateStrategy `toml:"update-strategy,omitempty"`
 
 	Apps struct {
 		Dockerfile []DockerFileApp `toml:"dockerfile,omitempty"`
@@ -56,7 +64,7 @@ type Manifest struct {
 }
 
 func (m *Manifest) GetApplicationCount() int {
-	return len(m.Apps.Docker) + len(m.Apps.Dockerfile)
+	return len(m.Apps.Docker) + len(m.Apps.Dockerfile) + len(m.Apps.StaticWeb)
 }
 
 func (m *Manifest) GetApps() []App {
@@ -64,9 +72,15 @@ func (m *Manifest) GetApps() []App {
 	for _, app := range m.Apps.Docker {
 		apps = append(apps, app.App)
 	}
+
 	for _, app := range m.Apps.Dockerfile {
 		apps = append(apps, app.App)
 	}
+
+	for _, app := range m.Apps.StaticWeb {
+		apps = append(apps, app.App)
+	}
+
 	return apps
 }
 

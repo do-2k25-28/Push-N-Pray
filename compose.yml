@@ -2,7 +2,7 @@ services:
   postgres:
     image: library/postgres:18.3
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: pushnpray
     volumes:
       - postgres:/var/lib/postgresql
@@ -30,6 +30,8 @@ services:
     networks:
       ceph:
         ipv4_address: 10.200.0.2
+      # Attach at least one container to network traefik so docker creates it
+      traefik:
 
 networks:
   ceph:

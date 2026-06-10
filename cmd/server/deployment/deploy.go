@@ -6,13 +6,14 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/cmd/server/deployment/updates"
 	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
 )
 
-func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
+func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir, deploymentID string) error {
 	ctx := context.WithValue(context.Background(), apps.WorkingDirectoryContextKey, workspaceDir)
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
@@ -78,7 +79,6 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 	appToEnv := utils.MergeMaps(envsFromServices)
 
 	// Deploy or update application containers
-
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
 
 	for _, app := range manifest.Apps.Docker {
@@ -105,14 +105,16 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 			appToEnv[app.AppName()], // Override user defined vars if they overlap
 		)
 
-		config.Name = "app-" + manifest.ProjectId + "-" + app.AppName()
+		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
+		config.Name = prefix + "-" + deploymentID
+
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
 			config.Labels,
 			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
 		)
 
-		if err := docker.RunContainerFromConfig(ctx, config); err != nil {
+		if err := updates.RunApplicationUpdate(ctx, docker, config, prefix, manifest.UpdateStrategy); err != nil {
 			return err
 		}
 	}
