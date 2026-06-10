@@ -56,7 +56,9 @@ func NewRouter() *gin.Engine {
 	env := router.Group("/v1/projects/:projectId/env")
 	env.Use(middleware.Auth(), middleware.ProjectOwnership())
 
+	env.GET("", GetProjectEnv)
 	env.POST("", SetProjectEnv)
+	env.DELETE("/:name", DeleteProjectEnv)
 
 	return router
 }

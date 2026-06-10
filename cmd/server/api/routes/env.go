@@ -9,6 +9,49 @@ import (
 	"gorm.io/gorm/clause"
 )
 
+func GetProjectEnv(c *gin.Context) {
+	project := c.MustGet("project").(models.Project)
+
+	var records []models.EnvVar
+	if result := database.GetDB().Where("project = ?", project.ID).Find(&records); result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve environment variables"})
+		return
+	}
+
+	type envVarResponse struct {
+		Name  string `json:"name"`
+		Value string `json:"value"`
+	}
+
+	variables := make([]envVarResponse, 0, len(records))
+	for _, r := range records {
+		variables = append(variables, envVarResponse{Name: r.Name, Value: r.Value})
+	}
+
+	c.JSON(http.StatusOK, gin.H{"variables": variables})
+}
+
+func DeleteProjectEnv(c *gin.Context) {
+	project := c.MustGet("project").(models.Project)
+	name := c.Param("name")
+
+	result := database.GetDB().
+		Where("project = ? AND name = ?", project.ID, name).
+		Delete(&models.EnvVar{})
+
+	if result.Error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete environment variable"})
+		return
+	}
+
+	if result.RowsAffected == 0 {
+		c.JSON(http.StatusNotFound, gin.H{"error": "environment variable not found"})
+		return
+	}
+
+	c.Status(http.StatusNoContent)
+}
+
 type setEnvRequest struct {
 	Variables []struct {
 		Name  string `json:"name"  binding:"required"`
