@@ -134,4 +134,3 @@ curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
   --aws-sigv4 "aws:amz:us-east-1:s3" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
 ```
-
