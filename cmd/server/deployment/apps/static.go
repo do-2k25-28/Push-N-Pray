@@ -42,10 +42,16 @@ func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, man
 	return nil
 }
 
-func (app StaticWebApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig {
-	return dockerw.ContainerConfig{
-		Image: app.imageName(manifest),
+func (app StaticWebApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) (dockerw.ContainerConfig, error) {
+	healthcheck, err := healthcheckConfig(app.App)
+	if err != nil {
+		return dockerw.ContainerConfig{}, err
 	}
+
+	return dockerw.ContainerConfig{
+		Image:       app.imageName(manifest),
+		Healthcheck: healthcheck,
+	}, nil
 }
 
 func NewStaticWebApp(manifest manifest.StaticWepApp) StaticWebApp {
