@@ -121,21 +121,22 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 			project.GetEnvForLinkedApps(app.LinkedApps(), containerNames),
 		)
 
+		config.Name = containerNames[app.AppName()]
+		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
+
+		config.Labels = utils.MergeMap(
+			config.Labels,
+			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
+		)
+
 		if app.GetAllowOriginFrom() != "" {
-			config.Env = utils.MergeMap(
-				config.Env,
+			config.Labels = utils.MergeMap(
+				config.Labels,
 				project.TraefikCors(project.CorsSettings{
 					AllowOrigin: containerNames[app.GetAllowOriginFrom()],
 				}),
 			)
 		}
-
-		config.Name = containerNames[app.AppName()]
-		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
-		config.Labels = utils.MergeMap(
-			config.Labels,
-			project.TraefikLabels(config.Name, app.AppName(), projectSlug, manifest.ProjectId),
-		)
 
 		if err := updates.RunApplicationUpdate(ctx, docker, config, prefix, manifest.UpdateStrategy); err != nil {
 			return err
