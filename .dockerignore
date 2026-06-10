@@ -11,5 +11,5 @@ compose.yml
 dependabot.yml
 Dockerfile
 LICENSE
-Makefile
+justfile
 README.md

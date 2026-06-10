@@ -9,7 +9,7 @@ on:
       - internal/**
       - go.mod
       - go.sum
-      - Makefile
+      - justfile
   workflow_dispatch:
 
 concurrency:
@@ -27,5 +27,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v6
 
+      - name: Install just
+        uses: extractions/setup-just@v4
+
       - name: Build cli
-        run: make build-cli
+        run: just build-cli
