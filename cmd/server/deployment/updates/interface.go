@@ -24,7 +24,7 @@ func RunApplicationUpdate(ctx context.Context, docker *dockerw.Client, newContai
 	}
 
 	if strategy == nil {
-		return fmt.Errorf("unknown app update strategy %q", strategy)
+		return fmt.Errorf("unknown app update strategy %s", strategyName)
 	}
 
 	log.Printf("Using update strategy %s\n", strategyName)
