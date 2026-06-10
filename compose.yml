@@ -19,8 +19,8 @@ services:
       CEPH_PUBLIC_NETWORK: 10.200.0.0/24
       NETWORK_AUTO_DETECT: 4
       CEPH_DEMO_UID: demo
-      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEY}
-      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY}
+      CEPH_DEMO_ACCESS_KEY: demo
+      CEPH_DEMO_SECRET_KEY: demo
       RGW_NAME: ceph
     # No ports exposed. Ceph is only reachable from project Docker networks
     # that are explicitly connected to this container at deploy time.

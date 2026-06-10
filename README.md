@@ -147,3 +147,25 @@ curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
   --aws-sigv4 "aws:amz:us-east-1:s3" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
 ```
+
+## Communicate with another app
+
+If your app needs to communicate with another app (for example, backends using micro service), you can ask the server to provide you the hostname of the target service to be injected as an environment variable in your app.
+
+For example if the `content` app needs to communicate to the `auth` app, you can use the `links` property to specify linked apps.
+
+```toml
+[apps]
+[[apps.docker]]
+name = 'auth'
+image = '...'
+links = ['content']
+
+[[apps.docker]]
+name = 'content'
+image = '...'
+```
+
+The container running the `auth` app will have a `APP_CONTENT_HOST` environment variable with the hostname of the `content` container resolving to its ip address.
+
+As you may have guessed the environment variable template is `APP_{NAME}_HOST`.

@@ -36,6 +36,32 @@ services:
     networks:
       - pushnpray
 
+  ceph:
+    image: quay.io/ceph/demo:latest-squid@sha256:522483cf07cfce6386b8e18a3edfa88a1b32c688dee231d0a6962b1513557723
+    container_name: ceph
+    hostname: ceph
+    privileged: true
+    healthcheck:
+      test: ["CMD-SHELL", "ceph health | grep -qv 'HEALTH_ERR' || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 60s
+    environment:
+      MON_IP: 10.200.0.2
+      CEPH_PUBLIC_NETWORK: 10.200.0.0/24
+      NETWORK_AUTO_DETECT: 4
+      CEPH_DEMO_UID: demo
+      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEY}
+      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY}
+      RGW_NAME: ceph
+    volumes:
+      - ceph-etc:/etc/ceph
+      - ceph-lib:/var/lib/ceph
+    networks:
+      ceph:
+        ipv4_address: 10.200.0.2
+
   server:
     image: ghcr.io/do-2k25-28/push-n-pray:latest
     restart: unless-stopped
@@ -52,6 +78,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      ceph:
+        condition: service_healthy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock:ro
     labels:
@@ -64,26 +92,6 @@ services:
       - pushnpray
       - traefik
       - ceph
-
-  ceph:
-    image: quay.io/ceph/demo:latest-squid@sha256:522483cf07cfce6386b8e18a3edfa88a1b32c688dee231d0a6962b1513557723
-    container_name: ceph
-    hostname: ceph
-    privileged: true
-    environment:
-      MON_IP: 10.200.0.2
-      CEPH_PUBLIC_NETWORK: 10.200.0.0/24
-      NETWORK_AUTO_DETECT: 4
-      CEPH_DEMO_UID: demo
-      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEY}
-      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY}
-      RGW_NAME: ceph
-    volumes:
-      - ceph-etc:/etc/ceph
-      - ceph-lib:/var/lib/ceph
-    networks:
-      ceph:
-        ipv4_address: 10.200.0.2
 
 volumes:
   postgres:

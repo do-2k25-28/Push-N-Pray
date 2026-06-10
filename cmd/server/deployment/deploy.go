@@ -76,10 +76,12 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 		envsFromServices = append(envsFromServices, env)
 	}
 
-	appToEnv := utils.MergeMaps(envsFromServices)
+	servicesEnv := utils.MergeMaps(envsFromServices)
 
 	// Deploy or update application containers
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
+
+	containerNames := map[string]string{}
 
 	for _, app := range manifest.Apps.Docker {
 		_apps = append(_apps, apps.NewDockerApp(app))
@@ -94,6 +96,13 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 	}
 
 	for _, app := range _apps {
+		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
+		name := prefix + "-" + deploymentID
+
+		containerNames[app.AppName()] = name
+	}
+
+	for _, app := range _apps {
 		if err := app.Prepare(ctx, docker, manifest); err != nil {
 			return err
 		}
@@ -102,12 +111,17 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 		config.Env = utils.MergeMap(
 			config.Env,
-			appToEnv[app.AppName()], // Override user defined vars if they overlap
+			servicesEnv[app.AppName()], // Override user defined vars if they overlap
 		)
 
 		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
-		config.Name = prefix + "-" + deploymentID
 
+		config.Env = utils.MergeMap(
+			config.Env,
+			project.GetEnvForLinkedApps(app.LinkedApps(), containerNames),
+		)
+
+		config.Name = containerNames[app.AppName()]
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
 			config.Labels,
