@@ -56,9 +56,7 @@ func NewRouter() *gin.Engine {
 	env := router.Group("/v1/projects/:projectId/env")
 	env.Use(middleware.Auth(), middleware.ProjectOwnership())
 
-	env.POST("", func(c *gin.Context) {
-		c.Status(http.StatusNoContent)
-	})
+	env.POST("", SetProjectEnv)
 
 	return router
 }

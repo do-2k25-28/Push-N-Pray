@@ -3,10 +3,12 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
 	"pushnpray/cmd/server/deployment/updates"
+	"pushnpray/cmd/server/models"
 	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
@@ -78,6 +80,15 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 	servicesEnv := utils.MergeMaps(envsFromServices)
 
+	// Load user-defined environment variables for this project
+	var userEnvRecords []models.EnvVar
+	database.GetDB().Where("project = ?", manifest.ProjectId).Find(&userEnvRecords)
+
+	userEnv := make(map[string]string, len(userEnvRecords))
+	for _, v := range userEnvRecords {
+		userEnv[v.Name] = v.Value
+	}
+
 	// Deploy or update application containers
 	_apps := make([]apps.DeployableApp, 0, manifest.GetApplicationCount())
 
@@ -109,9 +120,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 		config := app.ContainerConfig(ctx, manifest)
 
+		// Merge order: app env → user-defined vars → managed service vars (services always win)
 		config.Env = utils.MergeMap(
-			config.Env,
-			servicesEnv[app.AppName()], // Override user defined vars if they overlap
+			utils.MergeMap(config.Env, userEnv),
+			servicesEnv[app.AppName()],
 		)
 
 		prefix := "app-" + manifest.ProjectId + "-" + app.AppName()
