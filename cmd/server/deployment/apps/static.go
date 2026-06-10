@@ -2,8 +2,10 @@ package apps
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"strings"
@@ -30,6 +32,13 @@ func (app StaticWebApp) LinkedApps() []string {
 }
 
 func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
+	if filepath.IsAbs(app.Path) ||
+		filepath.Clean(app.Path) != app.Path ||
+		strings.HasPrefix(app.Path, "..") ||
+		strings.ContainsAny(app.Path, "\x00\n\r") {
+		return fmt.Errorf("invalid static app path %q: must be a clean relative path", app.Path)
+	}
+
 	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))
 
