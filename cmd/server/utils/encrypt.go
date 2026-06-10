@@ -18,7 +18,7 @@ import (
 func getEncryptionKey() ([]byte, error) {
 	raw := os.Getenv("ENV_ENCRYPTION_KEY")
 	if len(raw) != 32 {
-		return nil, fmt.Errorf("ENV_ENCRYPTION_KEY must be exactly 32 bytes, got %d", len(raw))
+		return nil, fmt.Errorf("ENV_ENCRYPTION_KEY must be exactly 32 characters, got %d", len(raw))
 	}
 	return []byte(raw), nil
 }
