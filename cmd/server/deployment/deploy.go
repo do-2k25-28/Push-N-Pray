@@ -112,11 +112,11 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 
 		baseName := "app-" + projectManifest.ProjectId + "-" + app.AppName()
 		config.Name = baseName
-		
+
 		if projectManifest.AppUpdateStrategy == manifest.AppUpdateStrategyBlueGreen {
 			config.Name = "app-" + deploymentID + "-" + projectManifest.ProjectId + "-" + app.AppName()
 		}
-		
+
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
 			config.Labels,

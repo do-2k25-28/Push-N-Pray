@@ -80,7 +80,7 @@ func (m *Manifest) GetApps() []App {
 	for _, app := range m.Apps.StaticWeb {
 		apps = append(apps, app.App)
 	}
-	
+
 	return apps
 }
 
