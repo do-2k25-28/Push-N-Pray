@@ -333,7 +333,7 @@ Content-Type: application/json
 
 #### List environment variables
 
-List all environment variables set for a project.
+List all environment variables set for a project. The `value` field is omitted for secret variables.
 
 ```http
 GET /v1/projects/:projectId/env
@@ -351,6 +351,10 @@ Content-Type: application/json
     {
       "name": "MY_CUSTOM_ENV_VARIABLE",
       "value": "c2997d1b7f93405c957417141be22c73"
+    },
+    {
+      "name": "MY_SECRET_VARIABLE",
+      "secret": true
     }
   ]
 }
@@ -359,6 +363,8 @@ Content-Type: application/json
 #### Set environment variables
 
 Add or update environment variables that will be injected for all services running in the project. Existing variables not included in the request are left untouched.
+
+Set `secret: true` on a variable to prevent its value from ever being returned by the API.
 
 ```http
 POST /v1/projects/:projectId/env
@@ -371,6 +377,11 @@ Content-Type: application/json
     {
       "name": "MY_CUSTOM_ENV_VARIABLE",
       "value": "c2997d1b7f93405c957417141be22c73"
+    },
+    {
+      "name": "MY_SECRET_VARIABLE",
+      "value": "s3cr3t",
+      "secret": true
     }
   ]
 }

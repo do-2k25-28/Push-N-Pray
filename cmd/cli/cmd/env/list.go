@@ -10,7 +10,7 @@ import (
 var listCmd = &cobra.Command{
 	Use:          "list",
 	Short:        "List project environment variables",
-	Long:         "Show the environment variables currently configured for a project.",
+	Long:         "Show the environment variables currently configured for a project. Secret variable values are not shown.",
 	SilenceUsage: true,
 	PreRunE:      prerun.Combine(prerun.Auth(), prerun.Manifest(), prerun.ApiClientFromManifest()),
 	RunE: func(cmd *cobra.Command, args []string) error {
@@ -29,7 +29,11 @@ var listCmd = &cobra.Command{
 
 		fmt.Printf("%-40s %s\n", "NAME", "VALUE")
 		for _, v := range resp.Variables {
-			fmt.Printf("%-40s %s\n", v.Name, v.Value)
+			if v.Secret {
+				fmt.Printf("%-40s ********\n", v.Name)
+			} else {
+				fmt.Printf("%-40s %s\n", v.Name, *v.Value)
+			}
 		}
 
 		return nil

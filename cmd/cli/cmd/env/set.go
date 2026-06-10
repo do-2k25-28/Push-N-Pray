@@ -9,10 +9,12 @@ import (
 	"github.com/spf13/cobra"
 )
 
+var secretFlag bool
+
 var setCmd = &cobra.Command{
 	Use:          "set KEY=VALUE [KEY=VALUE ...]",
 	Short:        "Set project environment variables",
-	Long:         "Add or update environment variables for all services in a project using KEY=VALUE pairs.",
+	Long:         "Add or update environment variables for all services in a project using KEY=VALUE pairs.\nUse --secret to mark all variables in the call as secrets so their values are never returned by the API.",
 	Args:         cobra.MinimumNArgs(1),
 	SilenceUsage: true,
 	PreRunE:      prerun.Combine(prerun.Auth(), prerun.Manifest(), prerun.ApiClientFromManifest()),
@@ -27,8 +29,9 @@ var setCmd = &cobra.Command{
 				return fmt.Errorf("invalid format %q: expected KEY=VALUE", arg)
 			}
 			vars = append(vars, api.EnvVar{
-				Name:  arg[:idx],
-				Value: arg[idx+1:],
+				Name:   arg[:idx],
+				Value:  arg[idx+1:],
+				Secret: secretFlag,
 			})
 		}
 
@@ -44,5 +47,6 @@ var setCmd = &cobra.Command{
 }
 
 func init() {
+	setCmd.Flags().BoolVarP(&secretFlag, "secret", "s", false, "Mark all variables in this call as secrets (values will never be returned by the API)")
 	EnvCmd.AddCommand(setCmd)
 }
