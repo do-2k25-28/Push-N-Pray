@@ -22,11 +22,17 @@ func (s RollingUpdateStrategy) UpdateContainer(ctx context.Context, docker *dock
 
 	time.Sleep(30 * time.Second)
 
-	log.Printf("Stopping containers matching %s\n", pattern)
-	if err := docker.StopContainers(ctx, existingContainers); err != nil {
-		return err
+	for len(existingContainers) > 0 {
+		container := existingContainers[0]
+		log.Printf("Rolling out old container %s\n", container.ID)
+		if err := docker.StopContainers(ctx, existingContainers[:1]); err != nil {
+			return err
+		}
+		if err := docker.RemoveContainers(ctx, existingContainers[:1]); err != nil {
+			return err
+		}
+		existingContainers = existingContainers[1:]
 	}
 
-	log.Printf("Removing containers matching %s\n", pattern)
-	return docker.RemoveContainers(ctx, existingContainers)
+	return nil
 }
