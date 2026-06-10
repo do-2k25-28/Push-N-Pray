@@ -33,6 +33,9 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		container.WithClient(c),
 		container.WithImage(cfg.Image),
 		container.WithName(cfg.Name),
+		container.WithAdditionalHostConfigModifier(func(hostConfig *tcontainer.HostConfig) {
+			hostConfig.RestartPolicy = tcontainer.RestartPolicy{Name: tcontainer.RestartPolicyUnlessStopped}
+		}),
 	}
 
 	if len(cfg.Env) > 0 {
