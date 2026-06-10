@@ -283,7 +283,7 @@ func (c *Client) GetAppLogs(ctx context.Context, projectID, appName string, tail
 	}
 
 	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
-		defer resp.Body.Close()
+		defer func() { _ = resp.Body.Close() }()
 		return nil, readHTTPError(resp)
 	}
 

@@ -33,7 +33,7 @@ func GetAppLogs(c *gin.Context) {
 		c.JSON(http.StatusNotFound, gin.H{"error": ErrAppNotFound})
 		return
 	}
-	defer reader.Close()
+	defer func() { _ = reader.Close() }()
 
 	c.Header("Content-Type", "text/plain; charset=utf-8")
 	c.Status(http.StatusOK)
@@ -43,7 +43,10 @@ func GetAppLogs(c *gin.Context) {
 		fw.flusher = flusher
 	}
 
-	stdcopy.StdCopy(fw, fw, reader)
+	_,err = stdcopy.StdCopy(fw, fw, reader)
+	if err != nil {
+		return
+	}
 }
 
 type flushWriter struct {

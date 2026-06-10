@@ -25,7 +25,8 @@ var logsCmd = &cobra.Command{
 		if err != nil {
 			return err
 		}
-		defer reader.Close()
+
+		defer func() { _ = reader.Close() }()
 
 		_, err = io.Copy(os.Stdout, reader)
 		return err
