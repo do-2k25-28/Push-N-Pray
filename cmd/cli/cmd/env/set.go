@@ -25,7 +25,7 @@ var setCmd = &cobra.Command{
 		vars := make([]api.EnvVar, 0, len(args))
 		for _, arg := range args {
 			idx := strings.IndexByte(arg, '=')
-			if idx < 0 {
+			if idx <= 0 {
 				return fmt.Errorf("invalid format %q: expected KEY=VALUE", arg)
 			}
 			vars = append(vars, api.EnvVar{
