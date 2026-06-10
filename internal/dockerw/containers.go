@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 	"os/exec"
 
 	"github.com/docker/go-sdk/container"
@@ -110,6 +111,22 @@ func (c *Client) StopContainers(ctx context.Context, containers []tcontainer.Sum
 	}
 
 	return nil
+}
+
+// GetContainerLogs returns a reader for the logs of a named container.
+// The caller must close the returned reader.
+func (c *Client) GetContainerLogs(ctx context.Context, containerName, tail string, follow bool) (io.ReadCloser, error) {
+	reader, err := c.ContainerLogs(ctx, containerName, client.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Timestamps: true,
+		Tail:       tail,
+		Follow:     follow,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dockerwrapper: get logs for %s: %w", containerName, err)
+	}
+	return reader, nil
 }
 
 // StopContainersByPattern stops all running containers whose names match the given pattern.
