@@ -17,16 +17,18 @@ You can find an example [here](./pushnpray.toml.example).
 
 ### App update strategy
 
-The `app-update-strategy` field controls how application containers are replaced during redeployments. It defaults to `recreate`.
+The `update-strategy` field controls how application containers are replaced during redeployments. It defaults to `recreate`.
 
 ```toml
-app-update-strategy = 'recreate'
+update-strategy = 'recreate'
 ```
 
 Available strategies:
 
 - `recreate`: stop and remove current app containers, then create and start the new containers.
 - `rolling`: start new containers and then stop and remove previous app containers.
+- `blue-green`: start the new container, then stop and remove previous app containers.
+- `canary`: start the new container and keep previous app containers running.
 
 ## Applications
 
