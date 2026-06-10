@@ -14,6 +14,10 @@ func (app DockerApp) AppName() string {
 	return app.Name
 }
 
+func (app DockerApp) LinkedApps() []string {
+	return app.Links
+}
+
 func (app DockerApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
 	return nil
 }

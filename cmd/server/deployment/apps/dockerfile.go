@@ -20,6 +20,10 @@ func (app DockerfileApp) AppName() string {
 	return app.Name
 }
 
+func (app DockerfileApp) LinkedApps() []string {
+	return app.Links
+}
+
 func (app DockerfileApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
 	return docker.BuildImage(ctx, app.imageTag(manifest), app.Dockerfile, app.Context)
 }

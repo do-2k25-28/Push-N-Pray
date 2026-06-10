@@ -8,7 +8,8 @@ const (
 )
 
 type App struct {
-	Name string `toml:"name"`
+	Name  string   `toml:"name"`
+	Links []string `toml:"links"`
 }
 
 type DockerFileApp struct {
