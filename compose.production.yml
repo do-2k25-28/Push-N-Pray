@@ -75,6 +75,7 @@ services:
       REGISTER_TOKEN: ${REGISTER_TOKEN}
       JWT_SECRET: ${JWT_SECRET}
       TRAEFIK_NET: ${TRAEFIK_NET}
+      ENV_ENCRYPTION_KEY: ${ENV_ENCRYPTION_KEY}
       CEPH_ENDPOINT: http://ceph:8080
     depends_on:
       postgres:

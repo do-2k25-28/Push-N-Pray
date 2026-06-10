@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
+	"pushnpray/cmd/server/utils"
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm/clause"
@@ -76,10 +77,19 @@ func SetProjectEnv(c *gin.Context) {
 
 	records := make([]models.EnvVar, 0, len(req.Variables))
 	for _, v := range req.Variables {
+		value := v.Value
+		if v.Secret {
+			encrypted, err := utils.EncryptSecret(v.Value)
+			if err != nil {
+				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encrypt secret value"})
+				return
+			}
+			value = encrypted
+		}
 		records = append(records, models.EnvVar{
 			Project: project.ID,
 			Name:    v.Name,
-			Value:   v.Value,
+			Value:   value,
 			Secret:  v.Secret,
 		})
 	}

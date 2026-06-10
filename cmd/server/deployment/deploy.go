@@ -9,6 +9,7 @@ import (
 	"pushnpray/cmd/server/deployment/services"
 	"pushnpray/cmd/server/deployment/updates"
 	"pushnpray/cmd/server/models"
+	serverutils "pushnpray/cmd/server/utils"
 	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
@@ -86,7 +87,15 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 	userEnv := make(map[string]string, len(userEnvRecords))
 	for _, v := range userEnvRecords {
-		userEnv[v.Name] = v.Value
+		val := v.Value
+		if v.Secret {
+			decrypted, err := serverutils.DecryptSecret(v.Value)
+			if err != nil {
+				return fmt.Errorf("failed to decrypt secret env var %q: %w", v.Name, err)
+			}
+			val = decrypted
+		}
+		userEnv[v.Name] = val
 	}
 
 	// Deploy or update application containers
