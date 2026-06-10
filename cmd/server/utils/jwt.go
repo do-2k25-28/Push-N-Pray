@@ -3,6 +3,8 @@ package utils
 import (
 	"errors"
 	"fmt"
+	"log"
+	"os"
 	"time"
 
 	"github.com/golang-jwt/jwt/v5"
@@ -82,7 +84,12 @@ func GetJWTHelper() *JWTTokenHelper {
 		return jwtHelperInstance
 	}
 
-	jwtHelperInstance = NewJWTTokenHelper("super-secret-passphrase")
+	secret := os.Getenv("JWT_SECRET")
+	if secret == "" {
+		log.Fatal("Missing JWT_SECRET environment variable.")
+	}
+
+	jwtHelperInstance = NewJWTTokenHelper(secret)
 
 	return jwtHelperInstance
 }
