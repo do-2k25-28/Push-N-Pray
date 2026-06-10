@@ -121,6 +121,15 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 			project.GetEnvForLinkedApps(app.LinkedApps(), containerNames),
 		)
 
+		if app.GetAllowOriginFrom() != "" {
+			config.Env = utils.MergeMap(
+				config.Env,
+				project.TraefikCors(project.CorsSettings{
+					AllowOrigin: containerNames[app.GetAllowOriginFrom()],
+				}),
+			)
+		}
+
 		config.Name = containerNames[app.AppName()]
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(

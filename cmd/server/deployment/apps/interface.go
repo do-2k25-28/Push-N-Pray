@@ -9,6 +9,7 @@ import (
 type DeployableApp interface {
 	AppName() string
 	LinkedApps() []string
+	GetAllowOriginFrom() string
 	// Prepare function is run before getting the contaienr config
 	// Can be anything. For exemple building container images
 	Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error

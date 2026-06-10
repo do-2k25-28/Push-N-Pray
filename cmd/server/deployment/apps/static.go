@@ -29,6 +29,10 @@ func (app StaticWebApp) LinkedApps() []string {
 	return app.Links
 }
 
+func (app StaticWebApp) GetAllowOriginFrom() string {
+	return app.AllowOriginFrom
+}
+
 func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
 	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))

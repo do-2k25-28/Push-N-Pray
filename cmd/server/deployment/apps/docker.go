@@ -18,6 +18,10 @@ func (app DockerApp) LinkedApps() []string {
 	return app.Links
 }
 
+func (app DockerApp) GetAllowOriginFrom() string {
+	return app.AllowOriginFrom
+}
+
 func (app DockerApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
 	return nil
 }

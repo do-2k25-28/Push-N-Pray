@@ -27,3 +27,18 @@ func TraefikLabels(containerName, appName, projectSlug, projectID string) map[st
 		fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", containerName): "le",
 	}
 }
+
+type CorsSettings struct {
+	AllowOrigin string
+}
+
+func TraefikCors(settings CorsSettings) map[string]string {
+	return map[string]string{
+		"traefik.http.middlewares.api-cors.headers.accesscontrolalloworiginlist":  fmt.Sprintf("https://%s", settings.AllowOrigin),
+		"traefik.http.middlewares.api-cors.headers.accesscontrolallowmethods":     "GET,POST,PUT,DELETE,OPTIONS",
+		"traefik.http.middlewares.api-cors.headers.accesscontrolallowheaders":     "Content-Type,Authorization",
+		"traefik.http.middlewares.api-cors.headers.accessControlAllowCredentials": "true",
+		"traefik.http.middlewares.api-cors.headers.accesscontrolmaxage":           "100",
+		"traefik.http.middlewares.api-cors.headers.addvaryheader":                 "true",
+	}
+}
