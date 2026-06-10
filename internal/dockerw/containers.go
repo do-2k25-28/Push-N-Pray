@@ -82,7 +82,7 @@ func (c *Client) RunContainerFromConfig(ctx context.Context, config ContainerCon
 	return nil
 }
 
-func (c *Client) listContainersByPattern(ctx context.Context, pattern string) ([]tcontainer.Summary, error) {
+func (c *Client) ListContainersByPattern(ctx context.Context, pattern string) ([]tcontainer.Summary, error) {
 	result, err := c.ContainerList(ctx, client.ContainerListOptions{
 		All:     true,
 		Filters: make(client.Filters).Add("name", pattern),
@@ -93,38 +93,54 @@ func (c *Client) listContainersByPattern(ctx context.Context, pattern string) ([
 	return result.Items, nil
 }
 
-// StopContainersByPattern stops all running containers whose names match the given pattern.
-func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) error {
-	containers, err := c.listContainersByPattern(ctx, pattern)
-	if err != nil {
-		return err
-	}
+func (c *Client) StopContainers(ctx context.Context, containers []tcontainer.Summary) error {
 	var errs []error
+
 	for _, ctr := range containers {
 		if _, err := c.ContainerStop(ctx, ctr.ID, client.ContainerStopOptions{}); err != nil {
 			errs = append(errs, fmt.Errorf("stop %s: %w", ctr.ID, err))
 		}
 	}
+
 	if len(errs) > 0 {
 		return fmt.Errorf("dockerwrapper: StopContainersByPattern: %w", errors.Join(errs...))
 	}
+
 	return nil
 }
 
-// RemoveContainersByPattern removes all containers whose names match the given pattern.
-func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) error {
-	containers, err := c.listContainersByPattern(ctx, pattern)
+// StopContainersByPattern stops all running containers whose names match the given pattern.
+func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) error {
+	containers, err := c.ListContainersByPattern(ctx, pattern)
+
 	if err != nil {
 		return err
 	}
+
+	return c.StopContainers(ctx, containers)
+}
+
+func (c *Client) RemoveContainers(ctx context.Context, containers []tcontainer.Summary) error {
 	var errs []error
+
 	for _, ctr := range containers {
 		if _, err := c.ContainerRemove(ctx, ctr.ID, client.ContainerRemoveOptions{Force: true}); err != nil {
 			errs = append(errs, fmt.Errorf("remove %s: %w", ctr.ID, err))
 		}
 	}
+
 	if len(errs) > 0 {
 		return fmt.Errorf("dockerwrapper: RemoveContainersByPattern: %w", errors.Join(errs...))
 	}
+
 	return nil
+}
+
+// RemoveContainersByPattern removes all containers whose names match the given pattern.
+func (c *Client) RemoveContainersByPattern(ctx context.Context, pattern string) error {
+	containers, err := c.ListContainersByPattern(ctx, pattern)
+	if err != nil {
+		return err
+	}
+	return c.RemoveContainers(ctx, containers)
 }
