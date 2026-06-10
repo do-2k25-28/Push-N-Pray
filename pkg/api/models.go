@@ -116,3 +116,8 @@ type EnvVar struct {
 type SetProjectEnvRequest struct {
 	Variables []EnvVar `json:"variables"`
 }
+
+// GetProjectEnvResponse wraps the list of env vars for a project.
+type GetProjectEnvResponse struct {
+	Variables []EnvVar `json:"variables"`
+}
