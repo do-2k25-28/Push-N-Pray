@@ -57,7 +57,7 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 	}
 
 	reportStatus(models.InProgress, fmt.Sprintf("Updating %d service(s), then deploying %d app(s)", man.GetServiceCount(), man.GetApplicationCount()))
-	if err := DeployProject(project.Slug, man, workspaceDir); err != nil {
+	if err := DeployProject(project.Slug, man, workspaceDir, dep.ID); err != nil {
 		reportStatus(models.Error, fmt.Sprintf("%s: %v", msgDeployFailed, err))
 		return
 	}
