@@ -83,8 +83,9 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 	// Load user-defined environment variables for this project
 	var userEnvRecords []models.EnvVar
-	database.GetDB().Where("project = ?", manifest.ProjectId).Find(&userEnvRecords)
-
+	if err := database.GetDB().Where("project = ?", manifest.ProjectId).Find(&userEnvRecords).Error; err != nil {
+		return fmt.Errorf("failed to load user-defined env vars: %w", err)
+	}
 	userEnv := make(map[string]string, len(userEnvRecords))
 	for _, v := range userEnvRecords {
 		val := v.Value
