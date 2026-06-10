@@ -25,7 +25,7 @@ func (s PostgresService) volumeName(projectId string) string {
 	return "postgres-" + s.Manifest.Name + "-" + projectId
 }
 
-func getServiceDataFromDatabase(projectId string, name string) (*models.PostgresService, error) {
+func getPostgresDataFromDatabase(projectId string, name string) (*models.PostgresService, error) {
 	var service models.PostgresService
 	if err := database.GetDB().Where("project = ? AND name = ?", projectId, name).First(&service).Error; err != nil {
 		return nil, err
@@ -66,7 +66,7 @@ func (s PostgresService) Prepare(ctx context.Context, client *dockerw.Client, ma
 }
 
 func (s PostgresService) Deploy(ctx context.Context, client *dockerw.Client, manifest manifest.Manifest, network dockerw.ContainerNetwork) error {
-	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
+	data, err := getPostgresDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return err
 	}
@@ -86,7 +86,7 @@ func (s PostgresService) Deploy(ctx context.Context, client *dockerw.Client, man
 }
 
 func (s PostgresService) EnvToInject(manifest manifest.Manifest) (map[string]map[string]string, error) {
-	data, err := getServiceDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
+	data, err := getPostgresDataFromDatabase(manifest.ProjectId, s.Manifest.Name)
 	if err != nil {
 		return nil, err
 	}

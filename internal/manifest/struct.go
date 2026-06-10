@@ -15,6 +15,11 @@ type DockerApp struct {
 	Image string `toml:"image"`
 }
 
+type StaticWepApp struct {
+	App
+	Path string `toml:"path"`
+}
+
 type Service struct {
 	Name   string   `toml:"name"`
 	UsedBy []string `toml:"used-by"`
@@ -40,6 +45,7 @@ type Manifest struct {
 	Apps struct {
 		Dockerfile []DockerFileApp `toml:"dockerfile,omitempty"`
 		Docker     []DockerApp     `toml:"docker,omitempty"`
+		StaticWeb  []StaticWepApp  `toml:"staticweb,omitempty"`
 	} `toml:"apps,omitempty"`
 
 	Services struct {

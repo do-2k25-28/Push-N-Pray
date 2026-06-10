@@ -6,13 +6,14 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"pushnpray/internal/utils"
 )
 
 func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir string) error {
-	ctx := context.Background()
+	ctx := context.WithValue(context.Background(), apps.WorkingDirectoryContextKey, workspaceDir)
 	docker, err := dockerw.NewClient(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to create docker client: %w", err)
@@ -41,6 +42,14 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 	for _, service := range manifest.Services.Postgres {
 		pg := services.PostgresService{Manifest: service}
 		_services = append(_services, &pg)
+	}
+	for _, service := range manifest.Services.S3 {
+		_services = append(_services, services.NewS3Service(service, ceph.GetCephEndpoint()))
+	}
+
+	for _, service := range manifest.Services.Redis {
+		redis := services.RedisService{Manifest: service}
+		_services = append(_services, &redis)
 	}
 
 	for _, service := range _services {
@@ -78,6 +87,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir 
 
 	for _, app := range manifest.Apps.Dockerfile {
 		_apps = append(_apps, apps.NewDockerFileApp(app, workspaceDir))
+	}
+
+	for _, app := range manifest.Apps.StaticWeb {
+		_apps = append(_apps, apps.NewStaticWebApp(app))
 	}
 
 	for _, app := range _apps {
