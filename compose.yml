@@ -39,7 +39,7 @@ networks:
         - subnet: 10.200.0.0/24
   traefik:
     name: traefik
-    
+
 volumes:
   postgres:
   ceph-etc:
