@@ -169,3 +169,21 @@ image = '...'
 The container running the `auth` app will have a `APP_CONTENT_HOST` environment variable with the hostname of the `content` container resolving to its ip address.
 
 As you may have guessed the environment variable template is `APP_{NAME}_HOST`.
+
+## CORS
+
+If you backend need CORS settings, you can use the `allow-origin-from` field. Our server will handle CORS for you.
+
+Example:
+
+```toml
+[apps]
+[[apps.docker]]
+name = 'back'
+image = '...'
+allow-origin-from = 'front'
+
+[[apps.docker]]
+name = 'front'
+image = '...'
+```
