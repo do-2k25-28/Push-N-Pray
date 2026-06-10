@@ -33,6 +33,7 @@ services:
       CEPH_ENDPOINT: http://ceph:8080
       DOMAIN_SUFFIX: localhost
       REGISTER_TOKEN: ${REGISTER_TOKEN:-easy}
+      DOCKER_HOST: unix:///var/run/docker.sock
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
     labels:
@@ -53,6 +54,12 @@ services:
         - action: sync
           path: ./cmd
           target: /src/cmd
+        - action: sync
+          path: ./internal
+          target: /src/internal
+        - action: sync
+          path: ./pkg
+          target: /src/pkg
         - action: sync+restart
           path: ./go.mod
           target: /src/go.mod

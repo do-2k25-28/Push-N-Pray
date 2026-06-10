@@ -7,10 +7,12 @@ RUN go install github.com/air-verse/air@latest
 COPY go.mod go.sum ./
 RUN go mod download
 
+COPY . .
+
 ENV GIN_MODE=debug
 EXPOSE 4000
 
-ENTRYPOINT ["air", "--", "./cmd/server"]
+ENTRYPOINT ["air"]
 
 FROM golang:1.26.2 AS builder
 
@@ -23,7 +25,7 @@ RUN go mod download
 # Copy source and build a static binary
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 \
-    go build -ldflags="-s -w" -o /out/server ./cmd/server
+  go build -ldflags="-s -w" -o /out/server ./cmd/server
 
 FROM gcr.io/distroless/static-debian13:nonroot
 

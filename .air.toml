@@ -1,0 +1,13 @@
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/server ./cmd/server"
+  bin = "./tmp/server"
+  include_ext = ["go"]
+  include_dir = ["cmd", "internal", "pkg"]
+  exclude_dir = ["tmp", "dist"]
+  delay = 500
+
+[screen]
+  clear_on_rebuild = true

@@ -2,5 +2,6 @@
 .gocache
 bin
 dist/
+tmp/
 letsencrypt/
 .env

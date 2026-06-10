@@ -3,6 +3,7 @@
 .gocache
 .vscode
 bin
+tmp
 docs
 .dockerignore
 .gitignore

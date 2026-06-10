@@ -18,10 +18,10 @@ cli *args:
     go run ./cmd/cli {{args}}
 
 dev:
-    docker compose up --watch
+    docker compose up --watch --build
 
 sudo-dev:
-    sudo docker compose up --watch
+    sudo docker compose up --watch --build
 
 clean:
     rm -rf {{bin}}
