@@ -6,6 +6,7 @@ import (
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
 	"pushnpray/cmd/server/deployment/services"
+	"pushnpray/cmd/server/deployment/updates"
 	"pushnpray/internal/ceph"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
@@ -110,12 +111,8 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 			appToEnv[app.AppName()], // Override user defined vars if they overlap
 		)
 
-		baseName := "app-" + projectManifest.ProjectId + "-" + app.AppName()
-		config.Name = baseName
-
-		if projectManifest.AppUpdateStrategy == manifest.AppUpdateStrategyBlueGreen {
-			config.Name = "app-" + deploymentID + "-" + projectManifest.ProjectId + "-" + app.AppName()
-		}
+		prefix := "app-" + projectManifest.ProjectId + "-" + app.AppName()
+		config.Name = prefix + "-" + deploymentID
 
 		config.Networks = []dockerw.ContainerNetwork{network, traefikNet}
 		config.Labels = utils.MergeMap(
@@ -123,37 +120,10 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 			project.TraefikLabels(config.Name, app.AppName(), projectSlug, projectManifest.ProjectId),
 		)
 
-		if err := deployAppContainer(ctx, docker, config, baseName, projectManifest.AppUpdateStrategy); err != nil {
+		if err := updates.RunApplicationUpdate(ctx, docker, config, prefix, projectManifest.AppUpdateStrategy); err != nil {
 			return err
 		}
 	}
 
 	return nil
-}
-
-func deployAppContainer(ctx context.Context, docker *dockerw.Client, config dockerw.ContainerConfig, baseName string, strategy manifest.AppUpdateStrategy) error {
-	switch strategy {
-	case manifest.AppUpdateStrategyRecreate:
-		if err := docker.StopContainersByPattern(ctx, baseName); err != nil {
-			return err
-		}
-
-		if err := docker.RemoveContainersByPattern(ctx, baseName); err != nil {
-			return err
-		}
-
-		return docker.RunContainerFromConfig(ctx, config)
-	case manifest.AppUpdateStrategyBlueGreen:
-		if err := docker.RunContainerFromConfig(ctx, config); err != nil {
-			return err
-		}
-
-		if err := docker.StopContainersByPattern(ctx, baseName); err != nil {
-			return err
-		}
-
-		return docker.RemoveContainersByPattern(ctx, baseName)
-	default:
-		return fmt.Errorf("unknown app update strategy %q", strategy)
-	}
 }
