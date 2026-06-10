@@ -73,6 +73,7 @@ services:
       DB_PORT: 5432
       HTTP_PORT: 80
       REGISTER_TOKEN: ${REGISTER_TOKEN}
+      JWT_SECRET: ${JWT_SECRET}
       TRAEFIK_NET: ${TRAEFIK_NET}
       CEPH_ENDPOINT: http://ceph:8080
     depends_on:
