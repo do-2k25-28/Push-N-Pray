@@ -26,7 +26,7 @@ app-update-strategy = 'recreate'
 Available strategies:
 
 - `recreate`: stop and remove current app containers, then create and start the new containers.
-- `blue-green`: start new containers with deployment-specific names, then stop and remove previous app containers.
+- `rolling`: start new containers and then stop and remove previous app containers.
 
 ## Applications
 
@@ -126,12 +126,12 @@ used-by = ["api"]
 
 The following variables are injected into apps listed in `used-by`:
 
-| Variable                 | Description            |
-|--------------------------|------------------------|
-| `S3_{NAME}_ENDPOINT`     | Ceph container GW      |
-| `S3_{NAME}_ACCESS_KEY`   | Ceph bucket access key |
-| `S3_{NAME}_SECRET_KEY`   | Ceph bucket secret key |
-| `S3_{NAME}_BUCKET`       | Ceph bucket name       |
+| Variable               | Description            |
+| ---------------------- | ---------------------- |
+| `S3_{NAME}_ENDPOINT`   | Ceph container GW      |
+| `S3_{NAME}_ACCESS_KEY` | Ceph bucket access key |
+| `S3_{NAME}_SECRET_KEY` | Ceph bucket secret key |
+| `S3_{NAME}_BUCKET`     | Ceph bucket name       |
 
 Example using the injected variables from inside a container:
 

@@ -3,8 +3,8 @@ package manifest
 type AppUpdateStrategy string
 
 const (
-	AppUpdateStrategyRecreate  AppUpdateStrategy = "recreate"
-	AppUpdateStrategyBlueGreen AppUpdateStrategy = "blue-green"
+	AppUpdateStrategyRecreate AppUpdateStrategy = "recreate"
+	AppUpdateStrategyRolling  AppUpdateStrategy = "rolling"
 )
 
 type App struct {

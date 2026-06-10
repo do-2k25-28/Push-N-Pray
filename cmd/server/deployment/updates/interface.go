@@ -18,8 +18,8 @@ func RunApplicationUpdate(ctx context.Context, docker *dockerw.Client, newContai
 		strategy = RecreateUpdateStrategy{}
 	}
 
-	if strategyName == manifest.AppUpdateStrategyBlueGreen {
-		strategy = BlueGreenUpdateStrategy{}
+	if strategyName == manifest.AppUpdateStrategyRolling {
+		strategy = RollingUpdateStrategy{}
 	}
 
 	if strategy == nil {

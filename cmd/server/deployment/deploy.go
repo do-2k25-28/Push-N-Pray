@@ -22,7 +22,7 @@ func DeployProject(projectSlug string, projectManifest manifest.Manifest, worksp
 	if projectManifest.AppUpdateStrategy == "" {
 		projectManifest.AppUpdateStrategy = manifest.AppUpdateStrategyRecreate
 	}
-	if projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyRecreate && projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyBlueGreen {
+	if projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyRecreate && projectManifest.AppUpdateStrategy != manifest.AppUpdateStrategyRolling {
 		return fmt.Errorf("unknown app update strategy %q", projectManifest.AppUpdateStrategy)
 	}
 
