@@ -1,3 +1,17 @@
+FROM golang:1.26.2 AS dev
+
+WORKDIR /src
+
+RUN go install github.com/air-verse/air@latest
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+ENV GIN_MODE=debug
+EXPOSE 4000
+
+ENTRYPOINT ["air", "--", "./cmd/server"]
+
 FROM golang:1.26.2 AS builder
 
 WORKDIR /src

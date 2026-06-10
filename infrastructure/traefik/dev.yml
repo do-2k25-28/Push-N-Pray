@@ -1,0 +1,13 @@
+log:
+  level: DEBUG
+ping: true
+api:
+  dashboard: true
+  insecure: true
+providers:
+  docker:
+    exposedByDefault: false
+    network: traefik
+entryPoints:
+  web:
+    address: ":80"

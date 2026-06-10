@@ -1,13 +1,81 @@
 services:
-  postgres:
-    image: library/postgres:18.3
+  traefik:
+    image: docker.io/library/traefik:v3.7.4@sha256:fcdef599e6259359833dd2e1d49f9e964f66825d69bd3dd468f51102ce013d03
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "traefik", "healthcheck", "--ping"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    ports:
+      - "80:80"
+      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./infrastructure/traefik/dev.yml:/etc/traefik/traefik.yml:ro
+    networks:
+      - traefik
+
+  server:
+    build:
+      context: .
+      target: dev
+    restart: unless-stopped
     environment:
-      POSTGRES_PASSWORD: password
-      POSTGRES_DB: pushnpray
+      DB_HOST: postgres
+      DB_USER: ${PG_USER:-pushnpray}
+      DB_PASSWORD: ${PG_PASSWORD:-password!123}
+      DB_NAME: ${PG_DB:-pushnpray}
+      DB_PORT: 5432
+      HTTP_PORT: 4000
+      TRAEFIK_NET: traefik
+      CEPH_ENDPOINT: http://ceph:8080
+      DOMAIN_SUFFIX: localhost
+      REGISTER_TOKEN: ${REGISTER_TOKEN:-easy}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik"
+      - "traefik.http.routers.api.rule=Host(`server.localhost`)"
+      - "traefik.http.routers.api.entrypoints=web"
+      - "traefik.http.services.api.loadbalancer.server.port=4000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - traefik
+      - pushnpray
+      - ceph
+    develop:
+      watch:
+        - action: sync
+          path: ./cmd
+          target: /src/cmd
+        - action: sync+restart
+          path: ./go.mod
+          target: /src/go.mod
+        - action: sync+restart
+          path: ./go.sum
+          target: /src/go.sum
+
+  postgres:
+    image: docker.io/library/postgres:18.4-alpine3.23@sha256:96d56f7f57c6aacd1fcb908bc83b345ec5f83231ee486dd66a1baadce274db88
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${PG_USER} -d ${PG_DB}"]
+      interval: 10s
+      retries: 5
+      start_period: 30s
+      timeout: 10s
+    environment:
+      POSTGRES_USER: ${PG_USER:-pushnpray}
+      POSTGRES_PASSWORD: ${PG_PASSWORD:-password!123}
+      POSTGRES_DB: ${PG_DB:-pushnpray}
     volumes:
       - postgres:/var/lib/postgresql
-    ports:
-      - 5432:5432
+    networks:
+      - pushnpray
 
   ceph:
     image: quay.io/ceph/demo:latest-squid@sha256:522483cf07cfce6386b8e18a3edfa88a1b32c688dee231d0a6962b1513557723
@@ -19,11 +87,9 @@ services:
       CEPH_PUBLIC_NETWORK: 10.200.0.0/24
       NETWORK_AUTO_DETECT: 4
       CEPH_DEMO_UID: demo
-      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEY}
-      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY}
+      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEYx:-access}
+      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY:-secret}
       RGW_NAME: ceph
-    # No ports exposed. Ceph is only reachable from project Docker networks
-    # that are explicitly connected to this container at deploy time.
     volumes:
       - ceph-etc:/etc/ceph
       - ceph-lib:/var/lib/ceph
@@ -32,14 +98,15 @@ services:
         ipv4_address: 10.200.0.2
 
 networks:
+  traefik:
+    name: traefik
+  pushnpray:
   ceph:
     driver: bridge
     ipam:
       config:
         - subnet: 10.200.0.0/24
-  traefik:
-    name: traefik
-    
+
 volumes:
   postgres:
   ceph-etc:
