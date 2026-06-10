@@ -79,6 +79,13 @@ func SetProjectEnv(c *gin.Context) {
 	records := make([]models.EnvVar, 0, len(req.Variables))
 	indexByName := make(map[string]int, len(req.Variables))
 	for _, v := range req.Variables {
+		for _, r := range v.Name {
+			if r == '=' || r == 0 {
+				c.JSON(http.StatusBadRequest, gin.H{"error": "invalid environment variable name"})
+				return
+			}
+		}
+
 		value := v.Value
 		if v.Secret {
 			encrypted, err := utils.EncryptSecret(v.Value)
