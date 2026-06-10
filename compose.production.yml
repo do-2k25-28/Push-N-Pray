@@ -49,6 +49,7 @@ services:
       REGISTER_TOKEN: ${REGISTER_TOKEN}
       TRAEFIK_NET: ${TRAEFIK_NET}
       CEPH_ENDPOINT: http://ceph:8080
+      DOMAIN_SUFFIX: ${DOMAIN_SUFFIX:-pushnpray.polydo.dev}
     depends_on:
       postgres:
         condition: service_healthy
