@@ -14,6 +14,10 @@ func main() {
 		log.Fatal("Missing REGISTER_TOKEN environment variable.")
 	}
 
+	if len(os.Getenv("ENV_ENCRYPTION_KEY")) != 32 {
+		log.Fatal("ENV_ENCRYPTION_KEY must be set to exactly 32 characters.")
+	}
+
 	database.InitDB()
 
 	router := routes.NewRouter()
