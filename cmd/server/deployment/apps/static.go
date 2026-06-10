@@ -25,6 +25,10 @@ func (app StaticWebApp) AppName() string {
 	return app.Name
 }
 
+func (app StaticWebApp) LinkedApps() []string {
+	return app.Links
+}
+
 func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
 	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))

@@ -2,7 +2,7 @@ services:
   postgres:
     image: library/postgres:18.3
     environment:
-      POSTGRES_PASSWORD: password
+      POSTGRES_PASSWORD: postgres
       POSTGRES_DB: pushnpray
     volumes:
       - postgres:/var/lib/postgresql
@@ -19,8 +19,8 @@ services:
       CEPH_PUBLIC_NETWORK: 10.200.0.0/24
       NETWORK_AUTO_DETECT: 4
       CEPH_DEMO_UID: demo
-      CEPH_DEMO_ACCESS_KEY: ${CEPH_DEMO_ACCESS_KEY}
-      CEPH_DEMO_SECRET_KEY: ${CEPH_DEMO_SECRET_KEY}
+      CEPH_DEMO_ACCESS_KEY: demo
+      CEPH_DEMO_SECRET_KEY: demo
       RGW_NAME: ceph
     # No ports exposed. Ceph is only reachable from project Docker networks
     # that are explicitly connected to this container at deploy time.
@@ -30,6 +30,8 @@ services:
     networks:
       ceph:
         ipv4_address: 10.200.0.2
+      # Attach at least one container to network traefik so docker creates it
+      traefik:
 
 networks:
   ceph:
@@ -39,7 +41,7 @@ networks:
         - subnet: 10.200.0.0/24
   traefik:
     name: traefik
-    
+
 volumes:
   postgres:
   ceph-etc:

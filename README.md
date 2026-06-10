@@ -15,6 +15,19 @@ curl -fsSL https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/m
 The manifest describes your applications and their dependencies (Postgres, ...). It is named `pushnpray.toml` and is located at the root of your repository.
 You can find an example [here](./pushnpray.toml.example).
 
+### App update strategy
+
+The `app-update-strategy` field controls how application containers are replaced during redeployments. It defaults to `recreate`.
+
+```toml
+app-update-strategy = 'recreate'
+```
+
+Available strategies:
+
+- `recreate`: stop and remove current app containers, then create and start the new containers.
+- `rolling`: start new containers and then stop and remove previous app containers.
+
 ## Applications
 
 Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
@@ -113,12 +126,12 @@ used-by = ["api"]
 
 The following variables are injected into apps listed in `used-by`:
 
-| Variable                 | Description            |
-|--------------------------|------------------------|
-| `S3_{NAME}_ENDPOINT`     | Ceph container GW      |
-| `S3_{NAME}_ACCESS_KEY`   | Ceph bucket access key |
-| `S3_{NAME}_SECRET_KEY`   | Ceph bucket secret key |
-| `S3_{NAME}_BUCKET`       | Ceph bucket name       |
+| Variable               | Description            |
+| ---------------------- | ---------------------- |
+| `S3_{NAME}_ENDPOINT`   | Ceph container GW      |
+| `S3_{NAME}_ACCESS_KEY` | Ceph bucket access key |
+| `S3_{NAME}_SECRET_KEY` | Ceph bucket secret key |
+| `S3_{NAME}_BUCKET`     | Ceph bucket name       |
 
 Example using the injected variables from inside a container:
 
@@ -135,3 +148,24 @@ curl "$S3_STORAGE_ENDPOINT/$S3_STORAGE_BUCKET/hello.txt" \
   --user "$S3_STORAGE_ACCESS_KEY:$S3_STORAGE_SECRET_KEY"
 ```
 
+## Communicate with another app
+
+If your app needs to communicate with another app (for example, backends using micro service), you can ask the server to provide you the hostname of the target service to be injected as an environment variable in your app.
+
+For example if the `content` app needs to communicate to the `auth` app, you can use the `links` property to specify linked apps.
+
+```toml
+[apps]
+[[apps.docker]]
+name = 'auth'
+image = '...'
+links = ['content']
+
+[[apps.docker]]
+name = 'content'
+image = '...'
+```
+
+The container running the `auth` app will have a `APP_CONTENT_HOST` environment variable with the hostname of the `content` container resolving to its ip address.
+
+As you may have guessed the environment variable template is `APP_{NAME}_HOST`.
