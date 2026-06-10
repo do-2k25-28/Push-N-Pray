@@ -29,7 +29,8 @@ func GetProjectEnv(c *gin.Context) {
 	for _, r := range records {
 		v := envVarResponse{Name: r.Name, Secret: r.Secret}
 		if !r.Secret {
-			v.Value = &r.Value
+			val := r.Value
+			v.Value = &val
 		}
 		variables = append(variables, v)
 	}
