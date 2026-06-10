@@ -46,6 +46,12 @@ func NewRouter() *gin.Engine {
 	deployments.GET("", ListDeployments)
 	deployments.GET("/:deploymentId", GetDeployment)
 
+	// Apps
+	apps := router.Group("/v1/projects/:projectId/apps")
+	apps.Use(middleware.Auth(), middleware.ProjectOwnership())
+
+	apps.GET("/:appName/logs", GetAppLogs)
+
 	// Environment variables
 	env := router.Group("/v1/projects/:projectId/env")
 	env.Use(middleware.Auth(), middleware.ProjectOwnership())

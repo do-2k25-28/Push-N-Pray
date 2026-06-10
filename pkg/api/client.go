@@ -250,6 +250,32 @@ func (c *Client) ListDeployments(ctx context.Context, projectID string) (*ListDe
 	return &resp, nil
 }
 
+func (c *Client) GetAppLogs(ctx context.Context, projectID, appName string, tail int, follow bool) (io.ReadCloser, error) {
+	followParam := "0"
+	if follow {
+		followParam = "1"
+	}
+	path := fmt.Sprintf("projects/%s/apps/%s/logs?tail=%d&follow=%s",
+		url.PathEscape(projectID), url.PathEscape(appName), tail, followParam)
+
+	req, err := c.newRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := c.httpClient.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("api: request failed: %w", err)
+	}
+
+	if resp.StatusCode < http.StatusOK || resp.StatusCode >= http.StatusMultipleChoices {
+		defer resp.Body.Close()
+		return nil, readHTTPError(resp)
+	}
+
+	return resp.Body, nil
+}
+
 func (c *Client) SetProjectEnv(ctx context.Context, projectID string, payload SetProjectEnvRequest) error {
 	path := fmt.Sprintf("projects/%s/env", url.PathEscape(projectID))
 	req, err := c.newRequest(ctx, http.MethodPost, path, payload)
@@ -273,7 +299,15 @@ func (c *Client) newRequest(ctx context.Context, method, path string, body any) 
 		buf = payload
 	}
 
-	target := c.baseURL.ResolveReference(&url.URL{Path: strings.TrimPrefix(path, "/")})
+	// Create an encoded url path by separating the path and query then combining it later : path?query.
+	cleanPath := strings.TrimPrefix(path, "/")
+	var ref *url.URL
+	if idx := strings.IndexByte(cleanPath, '?'); idx >= 0 {
+		ref = &url.URL{Path: cleanPath[:idx], RawQuery: cleanPath[idx+1:]}
+	} else {
+		ref = &url.URL{Path: cleanPath}
+	}
+	target := c.baseURL.ResolveReference(ref)
 	req, err := http.NewRequestWithContext(ctx, method, target.String(), buf)
 	if err != nil {
 		return nil, fmt.Errorf("api: create request: %w", err)

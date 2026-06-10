@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
+	"io"
 
 	"github.com/docker/go-sdk/container"
 	tcontainer "github.com/moby/moby/api/types/container"
@@ -95,6 +96,22 @@ func (c *Client) StopContainersByPattern(ctx context.Context, pattern string) er
 		return fmt.Errorf("dockerwrapper: StopContainersByPattern: %w", errors.Join(errs...))
 	}
 	return nil
+}
+
+// GetContainerLogs returns a reader for the logs of a named container.
+// The caller must close the returned reader.
+func (c *Client) GetContainerLogs(ctx context.Context, containerName, tail string, follow bool) (io.ReadCloser, error) {
+	reader, err := c.ContainerLogs(ctx, containerName, client.ContainerLogsOptions{
+		ShowStdout: true,
+		ShowStderr: true,
+		Timestamps: true,
+		Tail:       tail,
+		Follow:     follow,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("dockerwrapper: get logs for %s: %w", containerName, err)
+	}
+	return reader, nil
 }
 
 // RemoveContainersByPattern removes all containers whose names match the given pattern.
