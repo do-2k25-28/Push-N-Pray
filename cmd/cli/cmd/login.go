@@ -61,7 +61,7 @@ func init() {
 	loginCmd.Flags().StringVarP(&email, "email", "u", "", "Account email")
 	loginCmd.Flags().StringVarP(&password, "password", "p", "", "Account password")
 	loginCmd.Flags().StringVarP(&token, "token", "t", "", "Personnal access token")
-	loginCmd.Flags().StringVarP(&serverUrl, "server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	loginCmd.Flags().StringVarP(&serverUrl, "server", "", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 
 	var _ = loginCmd.MarkFlagRequired("email")
 	loginCmd.MarkFlagsOneRequired("password", "token")

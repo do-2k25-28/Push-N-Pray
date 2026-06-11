@@ -52,7 +52,7 @@ func init() {
 	registerCmd.Flags().StringVarP(&regEmail, "email", "u", "", "Account email")
 	registerCmd.Flags().StringVarP(&regPassword, "password", "p", "", "Account password")
 	registerCmd.Flags().StringVarP(&regToken, "register-token", "t", "", "Registration token")
-	registerCmd.Flags().StringVar(&regServerUrl, "server", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	registerCmd.Flags().StringVar(&regServerUrl, "server", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 
 	var _ = registerCmd.MarkFlagRequired("email")
 	var _ = registerCmd.MarkFlagRequired("password")

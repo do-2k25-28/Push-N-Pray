@@ -46,7 +46,7 @@ var createCmd = &cobra.Command{
 func init() {
 	createCmd.Flags().StringVarP(&createName, "name", "n", "", "Name of the token")
 	createCmd.Flags().IntVarP(&createDays, "days", "d", 0, "Expiration in days (0 for no expiration)")
-	createCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	createCmd.Flags().StringP("server", "", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 	var _ = createCmd.MarkFlagRequired("name")
 
 	PatCmd.AddCommand(createCmd)

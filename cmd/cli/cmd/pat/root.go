@@ -13,5 +13,5 @@ var PatCmd = &cobra.Command{
 }
 
 func init() {
-	PatCmd.PersistentFlags().String("server", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	PatCmd.PersistentFlags().String("server", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 }

@@ -30,5 +30,5 @@ var deleteCmd = &cobra.Command{
 func init() {
 	PatCmd.AddCommand(deleteCmd)
 
-	deleteCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	deleteCmd.Flags().StringP("server", "", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 }

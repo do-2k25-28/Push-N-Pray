@@ -60,7 +60,7 @@ func init() {
 
 	initCmd.Flags().StringP("name", "n", "", "Name for your new project")
 	initCmd.Flags().StringP("repository", "r", "", "URL of the repository (must be http(s))")
-	initCmd.Flags().StringP("server", "", "https://api.pushnpray.polydo.dev/v1/", "Push'N'Pray instance url")
+	initCmd.Flags().StringP("server", "", "https://api.pushnpray.hagridshut.net/v1/", "Push'N'Pray instance url")
 
 	var _ = initCmd.MarkFlagRequired("name")
 	var _ = initCmd.MarkFlagRequired("repository")

@@ -6,7 +6,7 @@ This document covers the internal HTTP REST API exposed by the backend.
 
 It is accessible at `http(s)://api.<DOMAIN>/v1/`.
 
-If using our Push'N'Pray instance it is `https://api.pushnpray.polydo.dev/v1/`.
+If using our Push'N'Pray instance it is `https://api.pushnpray.hagridshut.net/v1/`.
 
 ## Authentication
 
