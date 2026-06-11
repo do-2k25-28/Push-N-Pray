@@ -23,6 +23,14 @@ func RunApplicationUpdate(ctx context.Context, docker *dockerw.Client, newContai
 		strategy = RollingUpdateStrategy{}
 	}
 
+	if strategyName == manifest.UpdateStrategyBlueGreen {
+		strategy = BlueGreenUpdateStrategy{}
+	}
+
+	if strategyName == manifest.UpdateStrategyCanary {
+		strategy = CanaryUpdateStrategy{}
+	}
+
 	if strategy == nil {
 		return fmt.Errorf("unknown app update strategy %s", strategyName)
 	}
