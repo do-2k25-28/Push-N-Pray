@@ -8,8 +8,8 @@ import (
 	"io"
 
 	"github.com/docker/go-sdk/container"
-	tcontainer "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/api/pkg/stdcopy"
+	tcontainer "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/client"
 )
 
