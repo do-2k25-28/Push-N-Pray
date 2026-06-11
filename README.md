@@ -28,7 +28,7 @@ Available strategies:
 - `recreate`: stop and remove current app containers, then create and start the new containers.
 - `rolling`: start the new container with traffic enabled, then stop and remove previous containers one by one.
 - `blue-green`: start the green container without external traffic, switch traffic to green, then remove the blue containers.
-- `canary`: start the new container and keep previous app containers running.
+- `canary`: start the new container with 5% traffic, increase it to 25%, then promote it to 100% and remove previous app containers.
 
 ## Applications
 
