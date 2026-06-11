@@ -113,7 +113,7 @@ type EnvVar struct {
 	Secret bool   `json:"secret,omitempty"`
 }
 
-// ListedEnvVar is returned by GET /env.
+// ListedEnvVar is returned by GET /projects/:projectId/env.
 // Value is nil for secret variables.
 type ListedEnvVar struct {
 	Name   string  `json:"name"`
