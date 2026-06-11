@@ -4,6 +4,8 @@ import (
 	"context"
 	"log"
 	"os"
+	"strings"
+
 	"pushnpray/internal/dockerw"
 )
 
@@ -15,6 +17,25 @@ func CreateUser(ctx context.Context, docker *dockerw.Client, uid, accessKey, sec
 		"radosgw-admin", "user", "create",
 		"--uid=" + uid,
 		"--display-name=" + uid,
+		"--access-key=" + accessKey,
+		"--secret-key=" + secretKey,
+	})
+}
+
+// EnsureUser creates the user if it doesn't exist, or adds a new key if it does.
+// This handles the case where the Ceph user exists but the DB record was lost.
+func EnsureUser(ctx context.Context, docker *dockerw.Client, uid, accessKey, secretKey string) error {
+	err := CreateUser(ctx, docker, uid, accessKey, secretKey)
+	if err == nil {
+		return nil
+	}
+	if !strings.Contains(err.Error(), "user already exists") {
+		return err
+	}
+	return docker.ExecInContainer(ctx, containerName, []string{
+		"radosgw-admin", "key", "create",
+		"--uid=" + uid,
+		"--key-type=s3",
 		"--access-key=" + accessKey,
 		"--secret-key=" + secretKey,
 	})
