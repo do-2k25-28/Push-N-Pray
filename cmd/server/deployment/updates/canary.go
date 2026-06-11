@@ -4,7 +4,6 @@ import (
 	"context"
 	"log"
 	"pushnpray/internal/dockerw"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -23,10 +22,6 @@ func (s CanaryUpdateStrategy) UpdateContainer(ctx context.Context, docker *docke
 		return docker.RunContainerFromConfig(ctx, newContainer)
 	}
 
-	sort.Slice(existingContainers, func(i, j int) bool {
-		return existingContainers[i].Created > existingContainers[j].Created
-	})
-
 	router := newContainer.Name
 	service := newContainer.Name
 	weightedService := newContainer.Name + "-canary"
@@ -40,39 +35,25 @@ func (s CanaryUpdateStrategy) UpdateContainer(ctx context.Context, docker *docke
 	newContainer.Labels["traefik.http.routers."+router+".service"] = weightedService
 	newContainer.Labels["traefik.http.services."+service+".loadbalancer.server.port"] = "80"
 	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+service+".name"] = service + "@docker"
-	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+service+".weight"] = "5"
 	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+oldService+".name"] = oldService + "@docker"
-	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+oldService+".weight"] = "95"
 
-	log.Printf("Starting canary container %s with 5%% traffic\n", newContainer.Name)
-	if err := docker.RunContainerFromConfig(ctx, newContainer); err != nil {
-		return err
-	}
+	for _, weight := range []int{5, 25} {
+		newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+service+".weight"] = strconv.Itoa(weight)
+		newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+oldService+".weight"] = strconv.Itoa(100 - weight)
 
-	time.Sleep(30 * time.Second)
+		log.Printf("Starting canary container %s with %d%% traffic\n", newContainer.Name, weight)
+		if err := docker.RunContainerFromConfig(ctx, newContainer); err != nil {
+			return err
+		}
 
-	if err := docker.StopContainersByPattern(ctx, newContainer.Name); err != nil {
-		return err
-	}
-	if err := docker.RemoveContainersByPattern(ctx, newContainer.Name); err != nil {
-		return err
-	}
+		time.Sleep(30 * time.Second)
 
-	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+service+".weight"] = "25"
-	newContainer.Labels["traefik.http.services."+weightedService+".weighted.services."+oldService+".weight"] = "75"
-
-	log.Printf("Starting canary container %s with 25%% traffic\n", newContainer.Name)
-	if err := docker.RunContainerFromConfig(ctx, newContainer); err != nil {
-		return err
-	}
-
-	time.Sleep(30 * time.Second)
-
-	if err := docker.StopContainersByPattern(ctx, newContainer.Name); err != nil {
-		return err
-	}
-	if err := docker.RemoveContainersByPattern(ctx, newContainer.Name); err != nil {
-		return err
+		if err := docker.StopContainersByPattern(ctx, newContainer.Name); err != nil {
+			return err
+		}
+		if err := docker.RemoveContainersByPattern(ctx, newContainer.Name); err != nil {
+			return err
+		}
 	}
 
 	delete(newContainer.Labels, "traefik.http.routers."+router+".service")
