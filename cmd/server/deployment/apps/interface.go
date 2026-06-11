@@ -13,7 +13,8 @@ type DeployableApp interface {
 	GetAllowOriginFrom() string
 	// Prepare function is run before getting the contaienr config
 	// Can be anything. For exemple building container images
-	Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error
+	// env contains the merged env vars (user-defined + managed services) that will also be injected at runtime.
+	Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest, env map[string]string) error
 	// Basic container config
 	// Container name and network is managed by the deploy function not this
 	// Env can be populated but the deploy engine will add managed services

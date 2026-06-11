@@ -28,8 +28,14 @@ func (app DockerfileApp) GetAllowOriginFrom() string {
 	return app.AllowOriginFrom
 }
 
-func (app DockerfileApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
-	return docker.BuildImage(ctx, app.imageTag(manifest), app.Dockerfile, app.Context)
+func (app DockerfileApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest, env map[string]string) error {
+	if err := docker.BuildImage(ctx, app.imageTag(manifest), app.Dockerfile, app.Context, env); err != nil {
+		return err
+	}
+	if len(env) > 0 {
+		return docker.VerifyImageBuildArgs(ctx, app.imageTag(manifest), env)
+	}
+	return nil
 }
 
 func (app DockerfileApp) ContainerConfig(ctx context.Context, manifest manifest.Manifest) dockerw.ContainerConfig {
