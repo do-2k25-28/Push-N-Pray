@@ -25,14 +25,15 @@ func ExternalDomain(appName, projectSlug, projectId string) string {
 	return fmt.Sprintf("%s-%s-%s.%s", appName, projectSlug, projectId, tld)
 }
 
-func TraefikLabels(containerName, domain string) map[string]string {
+func TraefikLabels(containerName, domain string, port int) map[string]string {
 	return map[string]string{
 		"traefik.enable":         "true",
 		"traefik.docker.network": TraefikNet(),
-		fmt.Sprintf("traefik.http.routers.%s.rule", containerName):             fmt.Sprintf("Host(`%s`)", domain),
-		fmt.Sprintf("traefik.http.routers.%s.entrypoints", containerName):      "websecure",
-		fmt.Sprintf("traefik.http.routers.%s.tls", containerName):              "true",
-		fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", containerName): "le",
+		fmt.Sprintf("traefik.http.routers.%s.rule", containerName):                      fmt.Sprintf("Host(`%s`)", domain),
+		fmt.Sprintf("traefik.http.routers.%s.entrypoints", containerName):               "websecure",
+		fmt.Sprintf("traefik.http.routers.%s.tls", containerName):                       "true",
+		fmt.Sprintf("traefik.http.routers.%s.tls.certresolver", containerName):          "le",
+		fmt.Sprintf("traefik.http.services.%s.loadbalancer.server.port", containerName): fmt.Sprint(port),
 	}
 }
 

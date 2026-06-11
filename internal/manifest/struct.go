@@ -11,6 +11,15 @@ type App struct {
 	Name            string   `toml:"name"`
 	Links           []string `toml:"links"`
 	AllowOriginFrom string   `toml:"allow-origin-from,omitempty"`
+	Port            int      `toml:"port,omitempty"`
+}
+
+func (app App) AppPort() int {
+	if app.Port == 0 {
+		return 80
+	}
+
+	return app.Port
 }
 
 type DockerFileApp struct {
