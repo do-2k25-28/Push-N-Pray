@@ -9,14 +9,14 @@ entryPoints:
     address: ":443"
     http:
       tls:
-        certresolver: letsencrypt
+        certresolver: le
         domains:
           - main: pushnpray.hagridshut.net
             sans:
               - "*.pushnpray.hagridshut.net"
 
 certificatesResolvers:
-  letsencrypt:
+  le:
     acme:
       # caServer: https://acme-staging-v02.api.letsencrypt.org/directory # let's encrypt staging, less rate limiting
       storage: /etc/traefik/acme/acme.json

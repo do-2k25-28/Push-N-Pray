@@ -60,6 +60,12 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		opts = append(opts, container.WithExposedPorts(cfg.ExposedPorts...))
 	}
 
+	if len(cfg.Networks) > 0 {
+		for _, net := range cfg.Networks {
+			opts = append(opts, container.WithNetworkName(net.Aliases, net.Name))
+		}
+	}
+
 	if len(cfg.VolumeBinds) > 0 {
 		opts = append(opts, container.WithAdditionalHostConfigModifier(func(hostConfig *tcontainer.HostConfig) {
 			hostConfig.Binds = cfg.VolumeBinds
@@ -105,11 +111,7 @@ func (c *Client) RunContainerFromConfig(ctx context.Context, config ContainerCon
 	if _, err := container.Run(ctx, c.containerOptions(config)...); err != nil {
 		return err
 	}
-	for _, net := range config.Networks {
-		if err := c.ConnectContainerToNetwork(ctx, config.Name, net.Name); err != nil {
-			return err
-		}
-	}
+
 	return nil
 }
 
