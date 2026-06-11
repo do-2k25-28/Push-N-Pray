@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
@@ -44,6 +45,7 @@ func CreateProject(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(&project).Error; err != nil {
+		log.Printf("%s: %v", ErrProjectCreateFailed, err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrProjectCreateFailed, err)})
 		return
 	}
@@ -56,7 +58,8 @@ func ListProjects(c *gin.Context) {
 
 	var projects []models.Project
 	if err := database.GetDB().Find(&projects, "owner = ?", userId).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrProjectListFailed})
+		log.Printf("%s: %v", ErrProjectListFailed, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrProjectListFailed, err)})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"projects": projects})
@@ -74,20 +77,23 @@ func DeleteProject(c *gin.Context) {
 
 	dockerClient, err := dockerw.NewClient(c.Request.Context())
 	if err != nil {
-		c.Status(http.StatusInternalServerError)
+		log.Printf("failed to create docker client: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to connect to Docker: %v", err)})
 		return
 	}
 
 	if err := dockerClient.StopContainersByPattern(c.Request.Context(), pattern); err != nil {
-		c.Status(http.StatusInternalServerError)
+		log.Printf("failed to stop containers %s: %v", pattern, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to stop containers: %v", err)})
 		return
 	}
 	if err := dockerClient.RemoveContainersByPattern(c.Request.Context(), pattern); err != nil {
-		c.Status(http.StatusInternalServerError)
+		log.Printf("failed to remove containers %s: %v", pattern, err)
 	}
 
 	if err := database.GetDB().Delete(&project).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrProjectDeleteFailed})
+		log.Printf("%s: %v", ErrProjectDeleteFailed, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrProjectDeleteFailed, err)})
 		return
 	}
 	c.Status(http.StatusNoContent)

@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
@@ -15,7 +17,8 @@ func GetProjectEnv(c *gin.Context) {
 
 	var records []models.EnvVar
 	if result := database.GetDB().Where("project = ?", project.ID).Find(&records); result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to retrieve environment variables"})
+		log.Printf("failed to retrieve environment variables: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to retrieve environment variables: %v", result.Error)})
 		return
 	}
 
@@ -47,7 +50,8 @@ func DeleteProjectEnv(c *gin.Context) {
 		Delete(&models.EnvVar{})
 
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to delete environment variable"})
+		log.Printf("failed to delete environment variable: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to delete environment variable: %v", result.Error)})
 		return
 	}
 
@@ -90,7 +94,8 @@ func SetProjectEnv(c *gin.Context) {
 		if v.Secret {
 			encrypted, err := utils.EncryptSecret(v.Value)
 			if err != nil {
-				c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to encrypt secret value"})
+				log.Printf("failed to encrypt secret value: %v", err)
+				c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to encrypt secret value: %v", err)})
 				return
 			}
 			value = encrypted
@@ -118,7 +123,8 @@ func SetProjectEnv(c *gin.Context) {
 		Clauses(clause.OnConflict{UpdateAll: true}).
 		Create(&records)
 	if result.Error != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "failed to save environment variables"})
+		log.Printf("failed to save environment variables: %v", result.Error)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("failed to save environment variables: %v", result.Error)})
 		return
 	}
 

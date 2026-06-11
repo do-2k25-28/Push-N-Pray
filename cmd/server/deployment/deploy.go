@@ -3,6 +3,7 @@ package deployment
 import (
 	"context"
 	"fmt"
+	"log"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/deployment/apps"
 	"pushnpray/cmd/server/deployment/project"
@@ -64,11 +65,13 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 		if !deployed {
 			if err := service.Prepare(ctx, docker, manifest); err != nil {
-				return fmt.Errorf("filed to prepare deployment of service")
+				log.Printf("failed to prepare deployment of service: %v", err)
+				return fmt.Errorf("failed to prepare deployment of service: %w", err)
 			}
 
 			if err := service.Deploy(ctx, docker, manifest, network); err != nil {
-				return fmt.Errorf("failed to deploy service")
+				log.Printf("failed to deploy service: %v", err)
+				return fmt.Errorf("failed to deploy service: %w", err)
 			}
 		}
 

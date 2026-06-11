@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/deployment"
@@ -22,7 +24,8 @@ func ListDeployments(c *gin.Context) {
 
 	var deployments []models.Deployment
 	if err := database.GetDB().Where("project_id = ?", project.ID).Order("created_at desc").Find(&deployments).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrDeploymentListFailed})
+		log.Printf("%s: %v", ErrDeploymentListFailed, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrDeploymentListFailed, err)})
 		return
 	}
 	c.JSON(http.StatusOK, gin.H{"deployments": deployments})
@@ -69,7 +72,8 @@ func DeployProject(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(&dep).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrDeploymentCreateFailed})
+		log.Printf("%s: %v", ErrDeploymentCreateFailed, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrDeploymentCreateFailed, err)})
 		return
 	}
 

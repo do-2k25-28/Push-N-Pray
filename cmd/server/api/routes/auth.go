@@ -1,6 +1,8 @@
 package routes
 
 import (
+	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"time"
@@ -36,7 +38,8 @@ func Register(c *gin.Context) {
 
 	hashedPassword, err := utils.HashPassword(req.Password)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to hash password: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -47,13 +50,15 @@ func Register(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(user).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to create user: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
 	accessToken, err := utils.GetJWTHelper().GenerateToken(user.ID, 24*time.Hour)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to generate access token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -63,7 +68,8 @@ func Register(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(refreshToken).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to create refresh token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -98,7 +104,8 @@ func Login(c *gin.Context) {
 
 	accessToken, err := utils.GetJWTHelper().GenerateToken(user.ID, 24*time.Hour)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to generate access token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -108,7 +115,8 @@ func Login(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(refreshToken).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to create refresh token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -136,13 +144,15 @@ func Token(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Delete(&rt).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to delete refresh token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
 	accessToken, err := utils.GetJWTHelper().GenerateToken(rt.Owner, 24*time.Hour)
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to generate access token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 
@@ -152,7 +162,8 @@ func Token(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(newRefreshToken).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Internal server error"})
+		log.Printf("failed to create refresh token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Internal server error: %v", err)})
 		return
 	}
 

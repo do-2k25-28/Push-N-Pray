@@ -3,6 +3,8 @@ package routes
 import (
 	"crypto/sha256"
 	"encoding/hex"
+	"fmt"
+	"log"
 	"net/http"
 	"pushnpray/cmd/server/database"
 	"pushnpray/cmd/server/models"
@@ -19,7 +21,8 @@ func ListTokens(c *gin.Context) {
 	var tokens []models.PersonalAccessToken
 
 	if err := database.GetDB().Where("owner = ?", userID).Find(&tokens).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to fetch tokens"})
+		log.Printf("failed to fetch tokens: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to fetch tokens: %v", err)})
 		return
 	}
 
@@ -83,7 +86,8 @@ func CreateToken(c *gin.Context) {
 	}
 
 	if err := database.GetDB().Create(&token).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to create token"})
+		log.Printf("failed to create token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to create token: %v", err)})
 		return
 	}
 
@@ -98,7 +102,8 @@ func DeleteToken(c *gin.Context) {
 	tokenID := c.Param("tokenId")
 
 	if err := database.GetDB().Where("id = ? AND owner = ?", tokenID, userID).Delete(&models.PersonalAccessToken{}).Error; err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to delete token"})
+		log.Printf("failed to delete token: %v", err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("Failed to delete token: %v", err)})
 		return
 	}
 

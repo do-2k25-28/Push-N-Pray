@@ -21,7 +21,7 @@ func RunDeployment(dep models.Deployment, project models.Project, strategy GitFe
 			log.Printf("failed to update deployment %s status: %v", dep.ID, result.Error)
 
 			// Hail mary to notify the user
-			database.GetDB().Model(&dep).Updates(models.Deployment{Status: models.Error, Message: "Internal server error"})
+			database.GetDB().Model(&dep).Updates(models.Deployment{Status: models.Error, Message: fmt.Sprintf("Internal server error: %v", result.Error)})
 		}
 	}
 

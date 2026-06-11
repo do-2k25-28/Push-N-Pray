@@ -2,6 +2,7 @@ package routes
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"pushnpray/cmd/server/models"
 	"pushnpray/internal/dockerw"
@@ -23,7 +24,8 @@ func GetAppLogs(c *gin.Context) {
 
 	dockerClient, err := dockerw.NewClient(c.Request.Context())
 	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": ErrDockerConnect})
+		log.Printf("%s: %v", ErrDockerConnect, err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": fmt.Sprintf("%s: %v", ErrDockerConnect, err)})
 		return
 	}
 
