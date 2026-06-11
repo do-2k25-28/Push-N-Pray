@@ -2,8 +2,10 @@ package apps
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
 	"strings"
@@ -37,6 +39,11 @@ func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, man
 	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))
 
+	// Validate app.Path before injecting it into the Dockerfile COPY instruction.
+	if err := validateStaticPath(cwd, app.Path); err != nil {
+		return err
+	}
+
 	userDockerfile := strings.Replace(dockerfile, userContentKey, app.Path, 1)
 
 	if err := os.WriteFile(dockerfilePath, []byte(userDockerfile), 0644); err != nil {
@@ -58,6 +65,32 @@ func (app StaticWebApp) ContainerConfig(ctx context.Context, manifest manifest.M
 
 func NewStaticWebApp(manifest manifest.StaticWepApp) StaticWebApp {
 	return StaticWebApp{manifest}
+}
+
+// validateStaticPath ensures that the user-supplied static path is a safe
+// relative path within the workspace. It rejects absolute paths, traversals,
+// and symlinks that point outside the workspace.
+func validateStaticPath(workspace, p string) error {
+	if filepath.IsAbs(p) {
+		return fmt.Errorf("static path %q must be relative to the workspace", p)
+	}
+	if strings.HasPrefix(filepath.Clean(p)+string(filepath.Separator), ".."+string(filepath.Separator)) ||
+		filepath.Clean(p) == ".." {
+		return fmt.Errorf("static path %q escapes workspace root", p)
+	}
+
+	// Resolve symlinks and verify containment within the workspace.
+	candidate := filepath.Join(workspace, p)
+	resolved, err := filepath.EvalSymlinks(candidate)
+	if err != nil {
+		return fmt.Errorf("cannot resolve static path %q: %w", p, err)
+	}
+	cleanBase := filepath.Clean(workspace)
+	if !strings.HasPrefix(resolved+string(filepath.Separator), cleanBase+string(filepath.Separator)) {
+		return fmt.Errorf("static path %q escapes workspace root", p)
+	}
+
+	return nil
 }
 
 const userContentKey = "$USER_CONTENT"
