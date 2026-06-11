@@ -131,6 +131,8 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 		appDomains[app.AppName()] = project.ExternalDomain(app.AppName(), projectSlug, manifest.ProjectId)
 	}
 
+	fmt.Printf("Starting apps, %v\n", _apps)
+
 	for _, app := range _apps {
 		if err := app.Prepare(ctx, docker, manifest); err != nil {
 			return err

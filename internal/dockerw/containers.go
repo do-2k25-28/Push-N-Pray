@@ -40,6 +40,7 @@ func (c *Client) containerOptions(cfg ContainerConfig) []container.ContainerCust
 		}),
 		container.WithAdditionalHostConfigModifier(func(hostConfig *tcontainer.HostConfig) {
 			hostConfig.RestartPolicy = tcontainer.RestartPolicy{Name: tcontainer.RestartPolicyUnlessStopped}
+			hostConfig.PublishAllPorts = false
 		}),
 	}
 
