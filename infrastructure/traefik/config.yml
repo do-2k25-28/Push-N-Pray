@@ -11,9 +11,9 @@ entryPoints:
       tls:
         certresolver: letsencrypt
         domains:
-          - main: pushnpray.polydo.dev
+          - main: pushnpray.hagridshut.net
             sans:
-              - "*.pushnpray.polydo.dev"
+              - "*.pushnpray.hagridshut.net"
 
 certificatesResolvers:
   letsencrypt:

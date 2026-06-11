@@ -43,10 +43,11 @@ If your Traefik config requires environment variables put them in `traefik.env` 
 We use Traefik for routing HTTPs traffic. The TLS configuration depends on your infrastructure and your DNS provider.
 
 A premade config is available [here](https://raw.githubusercontent.com/do-2k25-28/Push-N-Pray/refs/heads/main/infrastructure/traefik/config.yml) that:
-  - Uses Let's Encrypt as the certificate provider
-  - Uses the DNS challenge
-  - Uses the Cloudflare provider for the DNS challenge
-  - For our domain `*.pushnpray.polydo.dev`
+
+- Uses Let's Encrypt as the certificate provider
+- Uses the DNS challenge
+- Uses the Cloudflare provider for the DNS challenge
+- For our domain `*.pushnpray.hagridshut.net`
 
 Get it using
 

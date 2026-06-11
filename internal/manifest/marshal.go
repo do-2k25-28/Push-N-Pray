@@ -7,7 +7,7 @@ import (
 )
 
 const DefaultManifestName = "pushnpray.toml"
-const defaultServer = "https://pushnpray.polydo.dev"
+const defaultServer = "https://pushnpray.hagridshut.net"
 
 func Marshal(manifest Manifest) ([]byte, error) {
 	if manifest.Server == defaultServer {

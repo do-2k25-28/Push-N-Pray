@@ -19,7 +19,7 @@ func TraefikNet() string {
 func ExternalDomain(appName, projectSlug, projectId string) string {
 	tld := os.Getenv("EXTERNAL_DOMAIN")
 	if tld == "" {
-		tld = "pushnpray.polydo.dev"
+		tld = "pushnpray.hagridshut.net"
 	}
 
 	return fmt.Sprintf("%s-%s-%s.%s", appName, projectSlug, projectId, tld)

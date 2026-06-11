@@ -308,7 +308,7 @@ Content-Type: application/json
 
 {
   "status": "success",
-  "url": "https://my-revolutionary-project-p0ZoB1FwH6.pushnpray.polydo.dev"
+  "url": "https://my-revolutionary-project-p0ZoB1FwH6.pushnpray.hagridshut.net"
 }
 ```
 
@@ -365,6 +365,7 @@ Content-Type: application/json
 Add or update environment variables that will be injected for all services running in the project. Existing variables not included in the request are left untouched.
 
 Set `secret: true` on a variable to prevent its value from ever being returned by the API. The server must be configured with `ENV_ENCRYPTION_KEY` (exactly 32 characters) to support secret variables.
+
 ```http
 POST /v1/projects/:projectId/env
 
