@@ -8,8 +8,9 @@ const (
 )
 
 type App struct {
-	Name  string   `toml:"name"`
-	Links []string `toml:"links"`
+	Name            string   `toml:"name"`
+	Links           []string `toml:"links"`
+	AllowOriginFrom string   `toml:"allow-origin-from,omitempty"`
 }
 
 type DockerFileApp struct {

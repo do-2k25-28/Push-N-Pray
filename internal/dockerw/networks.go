@@ -3,22 +3,33 @@ package dockerw
 import (
 	"context"
 	"fmt"
-	"os/exec"
-	"strings"
+
+	"github.com/containerd/errdefs"
+	"github.com/moby/moby/client"
 )
 
 func (c *Client) CreateNetworkIfNotExist(ctx context.Context, name string) error {
-	out, err := exec.CommandContext(ctx, "docker", "network", "create", name).CombinedOutput()
-	if err == nil || strings.Contains(string(out), "already exists") {
+	_, err := c.NetworkInspect(ctx, name, client.NetworkInspectOptions{})
+	if err == nil {
 		return nil
 	}
-	return fmt.Errorf("create network %q: %s", name, out)
+
+	if !errdefs.IsNotFound(err) {
+		return fmt.Errorf("inspect network %q: %w", name, err)
+	}
+
+	if _, err := c.NetworkCreate(ctx, name, client.NetworkCreateOptions{}); err != nil {
+		return fmt.Errorf("create network %q: %w", name, err)
+	}
+
+	return nil
 }
 
 func (c *Client) ConnectContainerToNetwork(ctx context.Context, containerName, networkName string) error {
-	out, err := exec.CommandContext(ctx, "docker", "network", "connect", networkName, containerName).CombinedOutput()
-	if err == nil || strings.Contains(string(out), "already exists") {
-		return nil
-	}
-	return fmt.Errorf("connect %s to %s: %s", containerName, networkName, out)
+	_, err := c.NetworkConnect(ctx, networkName, client.NetworkConnectOptions{
+		Container:      containerName,
+		EndpointConfig: nil,
+	})
+
+	return err
 }
