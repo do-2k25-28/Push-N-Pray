@@ -14,7 +14,12 @@ var logoutCmd = &cobra.Command{
 	Long:    "Remove stored access and refresh tokens to prevent further authenticated calls.",
 	PreRunE: prerun.Combine(prerun.Auth(), prerun.ApiClientFromArg("server")),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		deleted, err := session.DeleteSession(serverUrl)
+		server, err := cmd.Flags().GetString("server")
+		if err != nil {
+			return err
+		}
+
+		deleted, err := session.DeleteSession(server)
 		if err != nil {
 			return err
 		}
