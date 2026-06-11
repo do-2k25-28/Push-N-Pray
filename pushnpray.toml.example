@@ -5,6 +5,7 @@ app-update-strategy = 'recreate'
 [[apps.docker]]
 name = 'backend'
 image = 'ghcr.io/jdoe/project-backend:latest'
+port = 8080
 
 [[apps.docker]]
 name = 'frontend'

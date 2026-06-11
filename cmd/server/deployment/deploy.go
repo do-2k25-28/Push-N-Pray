@@ -131,7 +131,7 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 
 		config.Labels = utils.MergeMap(
 			config.Labels,
-			project.TraefikLabels(config.Name, appDomains[app.AppName()]),
+			project.TraefikLabels(config.Name, appDomains[app.AppName()], app.AppPort()),
 		)
 
 		if app.GetAllowOriginFrom() != "" {

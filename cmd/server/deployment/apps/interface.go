@@ -8,6 +8,7 @@ import (
 
 type DeployableApp interface {
 	AppName() string
+	AppPort() int
 	LinkedApps() []string
 	GetAllowOriginFrom() string
 	// Prepare function is run before getting the contaienr config

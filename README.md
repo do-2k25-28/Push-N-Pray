@@ -30,8 +30,8 @@ Available strategies:
 
 ## Applications
 
-Applications are user provided programs that run. All applications listening on port 80 will be exposed to the world
-using HTTPS.
+Applications are user provided programs that run. By default, Push'N'Pray exposes port 80 to the world
+using HTTPS. If your app listens on another port, set the app `port` field.
 
 > [!NOTE]
 > All files saved to the file system are not kept when updating/redeploying your app. If your app needs data persistence look at [managed services](#managed-services).
@@ -48,6 +48,7 @@ Example:
 name = 'my-app'
 dockerfile = 'src/app1/Dockerfile'
 context = 'src/app1/'
+port = 3000
 ```
 
 ### Docker
@@ -64,6 +65,7 @@ Example:
 [[apps.docker]]
 name = 'my-app'
 image = 'ghcr.io/jdoe/my-app:latest'
+port = 8080
 ```
 
 ### Static website
