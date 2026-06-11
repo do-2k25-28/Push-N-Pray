@@ -53,7 +53,7 @@ func (s *S3Service) Prepare(ctx context.Context, docker *dockerw.Client, m manif
 	accessKey := rand.Text()
 	secretKey := rand.Text()
 
-	if err := cephinfra.CreateUser(ctx, docker, s.userID(m.ProjectId), accessKey, secretKey); err != nil {
+	if err := cephinfra.EnsureUser(ctx, docker, s.userID(m.ProjectId), accessKey, secretKey); err != nil {
 		return fmt.Errorf("create Ceph user: %w", err)
 	}
 
