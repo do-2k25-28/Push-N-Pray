@@ -29,6 +29,7 @@ func (s CanaryUpdateStrategy) UpdateContainer(ctx context.Context, docker *docke
 	if len(existingContainers[0].Names) == 0 {
 		return fmt.Errorf("existing container %s has no name", existingContainers[0].ID)
 	}
+
 	oldService := strings.TrimPrefix(existingContainers[0].Names[0], "/")
 	priority, _ := strconv.Atoi(existingContainers[0].Labels["traefik.http.routers."+oldService+".priority"])
 	if priority == 0 {
