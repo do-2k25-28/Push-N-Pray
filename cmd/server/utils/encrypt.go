@@ -12,9 +12,8 @@ import (
 )
 
 // getEncryptionKey reads ENV_ENCRYPTION_KEY from the environment and returns the
-// 32-byte key. The variable must be exactly 32 ASCII characters (used directly
-// as the key bytes). This is called lazily so tests that don't exercise
-// encryption don't need the variable set.
+// 32-byte key (used directly as the AES-256 key bytes). This is called lazily so
+// tests that don't exercise encryption don't need the variable set.
 func getEncryptionKey() ([]byte, error) {
 	raw := os.Getenv("ENV_ENCRYPTION_KEY")
 	if len(raw) != 32 {
