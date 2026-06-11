@@ -29,7 +29,7 @@ func registryCredentials(image string) (string, string, error) {
 	return "", "", nil
 }
 
-func (app DockerApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
+func (app DockerApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest, _ map[string]string) error {
 	return image.Pull(ctx, app.Image, image.WithPullClient(docker), image.WithCredentialsFn(registryCredentials))
 }
 

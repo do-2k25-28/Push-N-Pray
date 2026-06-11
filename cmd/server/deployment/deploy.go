@@ -132,7 +132,10 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 	}
 
 	for _, app := range _apps {
-		if err := app.Prepare(ctx, docker, manifest); err != nil {
+		// Compute env available at both build and run time: user-defined vars + managed service vars
+		appEnv := utils.MergeMap(userEnv, servicesEnv[app.AppName()])
+
+		if err := app.Prepare(ctx, docker, manifest, appEnv); err != nil {
 			return err
 		}
 

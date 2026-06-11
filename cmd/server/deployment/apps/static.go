@@ -33,7 +33,7 @@ func (app StaticWebApp) GetAllowOriginFrom() string {
 	return app.AllowOriginFrom
 }
 
-func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest) error {
+func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, manifest manifest.Manifest, _ map[string]string) error {
 	cwd := ctx.Value(WorkingDirectoryContextKey).(string)
 	dockerfilePath := path.Join(cwd, app.imageName(manifest))
 
@@ -43,7 +43,7 @@ func (app StaticWebApp) Prepare(ctx context.Context, docker *dockerw.Client, man
 		return err
 	}
 
-	if err := docker.BuildImage(ctx, app.imageName(manifest), dockerfilePath, cwd); err != nil {
+	if err := docker.BuildImage(ctx, app.imageName(manifest), dockerfilePath, cwd, nil); err != nil {
 		return err
 	}
 
