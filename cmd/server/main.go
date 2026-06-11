@@ -14,6 +14,8 @@ func main() {
 		log.Fatal("Missing REGISTER_TOKEN environment variable.")
 	}
 
+	utils.SetupDockerBad()
+
 	database.InitDB()
 
 	router := routes.NewRouter()
