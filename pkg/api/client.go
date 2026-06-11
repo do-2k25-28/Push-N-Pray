@@ -300,6 +300,31 @@ func (c *Client) SetProjectEnv(ctx context.Context, projectID string, payload Se
 	return c.do(req, nil)
 }
 
+func (c *Client) GetProjectEnv(ctx context.Context, projectID string) (*GetProjectEnvResponse, error) {
+	path := fmt.Sprintf("projects/%s/env", url.PathEscape(projectID))
+	req, err := c.newRequest(ctx, http.MethodGet, path, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	var resp GetProjectEnvResponse
+	if err := c.do(req, &resp); err != nil {
+		return nil, err
+	}
+
+	return &resp, nil
+}
+
+func (c *Client) DeleteProjectEnv(ctx context.Context, projectID, name string) error {
+	path := fmt.Sprintf("projects/%s/env/%s", url.PathEscape(projectID), url.PathEscape(name))
+	req, err := c.newRequest(ctx, http.MethodDelete, path, nil)
+	if err != nil {
+		return err
+	}
+
+	return c.do(req, nil)
+}
+
 func (c *Client) newRequest(ctx context.Context, method, path string, body any) (*http.Request, error) {
 	var buf io.Reader
 

@@ -331,8 +331,40 @@ Content-Type: application/json
 
 ### Environment variables
 
-Set environment variables that will be injected for all services running in the project.
+#### List environment variables
 
+List all environment variables set for a project. The `value` field is omitted for secret variables.
+
+```http
+GET /v1/projects/:projectId/env
+
+Authorization: Bearer <accessToken>
+```
+
+```http
+HTTP/1.1 200 OK
+
+Content-Type: application/json
+
+{
+  "variables": [
+    {
+      "name": "MY_CUSTOM_ENV_VARIABLE",
+      "value": "c2997d1b7f93405c957417141be22c73"
+    },
+    {
+      "name": "MY_SECRET_VARIABLE",
+      "secret": true
+    }
+  ]
+}
+```
+
+#### Set environment variables
+
+Add or update environment variables that will be injected for all services running in the project. Existing variables not included in the request are left untouched.
+
+Set `secret: true` on a variable to prevent its value from ever being returned by the API. The server must be configured with `ENV_ENCRYPTION_KEY` (exactly 32 characters) to support secret variables.
 ```http
 POST /v1/projects/:projectId/env
 
@@ -344,11 +376,30 @@ Content-Type: application/json
     {
       "name": "MY_CUSTOM_ENV_VARIABLE",
       "value": "c2997d1b7f93405c957417141be22c73"
+    },
+    {
+      "name": "MY_SECRET_VARIABLE",
+      "value": "s3cr3t",
+      "secret": true
     }
   ]
 }
 ```
 
 ```http
-HTTP/1.1 204 OK
+HTTP/1.1 204 No Content
+```
+
+#### Delete an environment variable
+
+Remove a single environment variable by name.
+
+```http
+DELETE /v1/projects/:projectId/env/:name
+
+Authorization: Bearer <accessToken>
+```
+
+```http
+HTTP/1.1 204 No Content
 ```

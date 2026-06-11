@@ -106,13 +106,27 @@ type ListDeploymentsResponse struct {
 	Deployments []Deployment `json:"deployments"`
 }
 
-// EnvVar represents a project environment variable.
+// EnvVar represents a project environment variable in a request.
 type EnvVar struct {
-	Name  string `json:"name"`
-	Value string `json:"value"`
+	Name   string `json:"name"`
+	Value  string `json:"value"`
+	Secret bool   `json:"secret,omitempty"`
+}
+
+// ListedEnvVar is returned by GET /projects/:projectId/env.
+// Value is nil for secret variables.
+type ListedEnvVar struct {
+	Name   string  `json:"name"`
+	Value  *string `json:"value,omitempty"`
+	Secret bool    `json:"secret,omitempty"`
 }
 
 // SetProjectEnvRequest is the payload for setting project env vars.
 type SetProjectEnvRequest struct {
 	Variables []EnvVar `json:"variables"`
+}
+
+// GetProjectEnvResponse wraps the list of env vars for a project.
+type GetProjectEnvResponse struct {
+	Variables []ListedEnvVar `json:"variables"`
 }

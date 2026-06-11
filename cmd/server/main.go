@@ -14,6 +14,11 @@ func main() {
 		log.Fatal("Missing REGISTER_TOKEN environment variable.")
 	}
 
+	key := os.Getenv("ENV_ENCRYPTION_KEY")
+	if key != "" && len(key) != 32 {
+		log.Fatal("ENV_ENCRYPTION_KEY must be exactly 32 characters when set.")
+	}
+
 	utils.SetupDockerBad()
 
 	database.InitDB()

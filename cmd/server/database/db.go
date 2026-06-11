@@ -67,6 +67,7 @@ func InitDB() {
 		&models.PostgresService{},
 		&models.S3Service{},
 		&models.RedisService{},
+		&models.EnvVar{},
 	); err != nil {
 		log.Fatal("failed to migrate database: ", err)
 	}
