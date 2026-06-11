@@ -2,6 +2,8 @@
 
 A platform-as-a-service in Go. Declare your apps and services in a `pushnpray.toml` manifest, push to your repository, and Push'N'Pray handles the rest.
 
+**Realised by: Léo Torres, Dorian Richard, Allan Merland, Kilian Nagel**
+
 ## CLI
 
 Install the CLI with:
