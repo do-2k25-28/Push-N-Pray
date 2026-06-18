@@ -2,6 +2,7 @@ package apps
 
 import (
 	"context"
+	"fmt"
 	"pushnpray/cmd/server/utils"
 	"pushnpray/internal/dockerw"
 	"pushnpray/internal/manifest"
@@ -44,13 +45,23 @@ func (app DockerfileApp) ContainerConfig(ctx context.Context, manifest manifest.
 	}
 }
 
-func NewDockerFileApp(manifest manifest.DockerFileApp, workspace string) DockerfileApp {
+func NewDockerFileApp(manifest manifest.DockerFileApp, workspace string) (DockerfileApp, error) {
 	app := DockerfileApp{
 		manifest,
 	}
 
-	app.Dockerfile = utils.ResolvePath(workspace, manifest.Dockerfile)
-	app.Context = utils.ResolvePath(workspace, manifest.Context)
+	dockerfile, err := utils.ResolvePath(workspace, manifest.Dockerfile)
+	if err != nil {
+		return DockerfileApp{}, fmt.Errorf("invalid dockerfile path: %w", err)
+	}
 
-	return app
+	buildContext, err := utils.ResolvePath(workspace, manifest.Context)
+	if err != nil {
+		return DockerfileApp{}, fmt.Errorf("invalid context path: %w", err)
+	}
+
+	app.Dockerfile = dockerfile
+	app.Context = buildContext
+
+	return app, nil
 }

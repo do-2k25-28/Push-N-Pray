@@ -113,7 +113,11 @@ func DeployProject(projectSlug string, manifest manifest.Manifest, workspaceDir,
 	}
 
 	for _, app := range manifest.Apps.Dockerfile {
-		_apps = append(_apps, apps.NewDockerFileApp(app, workspaceDir))
+		dockerfileApp, err := apps.NewDockerFileApp(app, workspaceDir)
+		if err != nil {
+			return fmt.Errorf("app %q: %w", app.Name, err)
+		}
+		_apps = append(_apps, dockerfileApp)
 	}
 
 	for _, app := range manifest.Apps.StaticWeb {
